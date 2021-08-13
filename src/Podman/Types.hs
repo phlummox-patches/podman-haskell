@@ -3,76 +3,79 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Podman.Types
-  ( -- * System
-    LinuxCapability (..),
-    SystemdRestartPolicy (..),
-    ExecResponse (..),
-    SecretCreateResponse (..),
-    ContainerChangeKind (..),
-    ContainerStatus (..),
+  (
+  --  -- * System
+  --  LinuxCapability (..),
+  --  SystemdRestartPolicy (..),
+  --  ExecResponse (..),
+  --  SecretCreateResponse (..),
+  --  ContainerChangeKind (..),
+  --  ContainerStatus (..),
 
-    -- * Responses
-    IP (..),
-    Signal (..),
-    FileMode (..),
-    Error (..),
-    Version (..),
-    InspectContainerState (..),
-    InspectContainerConfig (..),
-    SpecGenerator (..),
-    PortMapping (..),
-    ListContainer (..),
-    ListContainerNamespaces (..),
-    ContainerSize (..),
-    Mount (..),
-    Namespace (..),
-    LinuxDevice (..),
-    NamedVolume (..),
-    ImageVolume (..),
-    LogConfig (..),
-    OverlayVolume (..),
-    ImageSummary (..),
-    ImageTreeResponse (..),
-    ContainerChange (..),
-    ImagesPullResponse (..),
-    Dns (..),
-    NetConf (..),
-    NetworkConfig (..),
-    NetworkListReport (..),
-    Volume (..),
-    VolumeUsageData (..),
-    SecretInfoReport (..),
-    SecretSpec (..),
-    SecretDriverSpec (..),
-    ProcessConfig (..),
-    ExecInspectResponse (..),
-    InspectContainerResponse (..),
-    ContainerCreateResponse (..),
+  --  -- * Responses
+  --  IP (..),
+  --  Signal (..),
+  --  FileMode (..),
+  --  Error (..),
+  --  Version (..),
+  --  InspectContainerState (..),
+  --  InspectContainerConfig (..),
+  --  SpecGenerator (..),
+  --  PortMapping (..),
+  --  ListContainer (..),
+  --  ListContainerNamespaces (..),
+  --  ContainerSize (..),
+  --  Mount (..),
+  --  Namespace (..),
+  --  LinuxDevice (..),
+  --  NamedVolume (..),
+  --  ImageVolume (..),
+  --  LogConfig (..),
+  --  OverlayVolume (..),
+  --  ImageSummary (..),
+  --  ImageTreeResponse (..),
+  --  ContainerChange (..),
+  --  ImagesPullResponse (..),
+  --  Dns (..),
+  --  NetConf (..),
+  --  NetworkConfig (..),
+  --  NetworkListReport (..),
+  --  Volume (..),
+  --  VolumeUsageData (..),
+  --  SecretInfoReport (..),
+  --  SecretSpec (..),
+  --  SecretDriverSpec (..),
+  --  ProcessConfig (..),
+  --  ExecInspectResponse (..),
+  --  InspectContainerResponse (..),
+  --  ContainerCreateResponse (..),
 
-    -- * Queries
-    ContainerListQuery (..),
-    defaultContainerListQuery,
-    GenerateSystemdQuery (..),
-    defaultGenerateSystemdQuery,
-    ImageListQuery (..),
-    defaultImageListQuery,
-    AttachQuery (..),
-    defaultAttachQuery,
-    LogsQuery (..),
-    defaultLogsQuery,
-    ImagePullQuery (..),
+  --  -- * Queries
+  --  ContainerListQuery (..),
+  --  defaultContainerListQuery,
+  --  GenerateSystemdQuery (..),
+  --  defaultGenerateSystemdQuery,
+  --  ImageListQuery (..),
+  --  defaultImageListQuery,
+  --  AttachQuery (..),
+  --  defaultAttachQuery,
+  --  LogsQuery (..),
+  --  defaultLogsQuery,
+  --  ImagePullQuery (..),
 
-    -- * Bodies
-    ExecConfig (..),
+  --  -- * Bodies
+  --  ExecConfig (..),
 
-    -- * Smart Constructors
-    mkSpecGenerator,
-    mkExecConfig,
-    mkImagePullQuery,
+  --  -- * Smart Constructors
+  --  mkSpecGenerator,
+  --  mkExecConfig,
+  --  mkImagePullQuery,
+    module Podman.Types
   )
-where
+  where
 
 import Data.Aeson (FromJSON (..), Options (fieldLabelModifier, omitNothingFields), ToJSON (..), Value (Number, String), defaultOptions, genericParseJSON, genericToJSON, withScientific, withText)
 import qualified Data.Map as M
@@ -83,6 +86,8 @@ import GHC.Generics (Generic)
 import GHC.Int (Int32, Int64)
 import GHC.Word (Word16, Word32, Word64, Word8)
 import System.Linux.Capabilities (Capability (..))
+import Lens.Micro.TH
+import Lens.Micro.Type
 
 newtype LinuxCapability = LinuxCapability Capability deriving newtype (Eq, Show)
 
@@ -132,6 +137,8 @@ newtype ExecResponse = ExecResponse
   }
   deriving stock (Show, Eq, Generic)
 
+makeLenses ''ExecResponse
+
 instance FromJSON ExecResponse where
   parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 13, omitNothingFields = True})
 
@@ -142,6 +149,10 @@ newtype SecretCreateResponse = SecretCreateResponse
   { _secretCreateResponseID :: Text
   }
   deriving stock (Show, Eq, Generic)
+
+
+makeLenses ''SecretCreateResponse
+
 
 instance FromJSON SecretCreateResponse where
   parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 21, omitNothingFields = True})
@@ -236,6 +247,9 @@ data Error = Error
   }
   deriving stock (Show, Eq, Generic)
 
+makeLenses ''Error
+
+
 instance FromJSON Error where
   parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 6, omitNothingFields = True})
 
@@ -248,6 +262,9 @@ data Version = Version
     _versionVersion :: Text
   }
   deriving stock (Show, Eq, Generic)
+
+makeLenses ''Version
+
 
 instance FromJSON Version where
   parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 8, omitNothingFields = True})
@@ -276,6 +293,9 @@ data InspectContainerState = InspectContainerState
     _inspectContainerStateOOMKilled :: Bool
   }
   deriving stock (Show, Eq, Generic)
+
+makeLenses ''InspectContainerState
+
 
 instance FromJSON InspectContainerState where
   parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 22, omitNothingFields = True})
@@ -331,11 +351,862 @@ data InspectContainerConfig = InspectContainerConfig
   }
   deriving stock (Show, Eq, Generic)
 
+makeLenses ''InspectContainerConfig
+
+
 instance FromJSON InspectContainerConfig where
   parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 23, omitNothingFields = True})
 
 instance ToJSON InspectContainerConfig where
   toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 23, omitNothingFields = True})
+
+
+-- | LogConfig describes the logging characteristics for a container
+data LogConfig = LogConfig
+  { -- | LogPath is the path the container's logs will be stored at.
+    _logConfigpath :: Text,
+    -- | Size is the maximum size of the log file Optional.
+    _logConfigsize :: Int64,
+    -- | LogDriver is the container's log driver.
+    _logConfigdriver :: Text,
+    -- | A set of options to accompany the log driver.
+    _logConfigoptions :: M.Map Text Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON LogConfig where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 10, omitNothingFields = True})
+
+instance ToJSON LogConfig where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 10, omitNothingFields = True})
+
+
+makeLenses ''LogConfig
+
+-- | Namespace describes the namespace
+data Namespace = Namespace
+  { _namespacestring :: Text,
+    _namespacensmode :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON Namespace where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 10, omitNothingFields = True})
+
+instance ToJSON Namespace where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 10, omitNothingFields = True})
+
+makeLenses ''Namespace
+
+
+
+-- | PortMapping is one or more ports that will be mapped into the container.
+data PortMapping = PortMapping
+  { -- | HostPort is the port number that will be forwarded from the host into the container.
+    _portMappinghost_port :: Word16,
+    -- | Protocol is the protocol forward.
+    _portMappingprotocol :: Text,
+    -- | ContainerPort is the port number that will be exposed from the container.
+    _portMappingcontainer_port :: Word16,
+    -- | Range is the number of ports that will be forwarded, starting at HostPort and ContainerPort and counting up.
+    _portMappingrange :: Word16,
+    -- | HostIP is the IP that we will bind to on the host.
+    _portMappinghost_ip :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON PortMapping where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
+
+instance ToJSON PortMapping where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
+
+makeLenses ''PortMapping
+
+-- | ContainerSize holds the size of the container's root filesystem and top
+-- read-write layer.
+data ContainerSize = ContainerSize
+  { _containerSizerwSize :: Int64,
+    _containerSizerootFsSize :: Int64
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ContainerSize where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
+
+instance ToJSON ContainerSize where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
+
+makeLenses ''ContainerSize
+
+
+-- | Mount specifies a mount for a container.
+data Mount = Mount
+  { -- | Destination is the absolute path where the mount will be placed in the container.
+    _mountdestination :: Text,
+    -- | Source specifies the source path of the mount.
+    _mountsource :: Text,
+    -- | Options are fstab style mount options.
+    _mountoptions :: [Text],
+    -- | Type specifies the mount kind.
+    _mounttype :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON Mount where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 6, omitNothingFields = True})
+
+instance ToJSON Mount where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 6, omitNothingFields = True})
+
+makeLenses ''Mount
+
+-- | LinuxDevice represents the mknod information for a Linux special device file
+data LinuxDevice = LinuxDevice
+  { -- | Minor is the device's minor number.
+    _linuxDeviceminor :: Int64,
+    -- | Path to the device.
+    _linuxDevicepath :: Text,
+    _linuxDevicefileMode :: FileMode,
+    -- | UID of the device.
+    _linuxDeviceuid :: Word32,
+    -- | Major is the device's major number.
+    _linuxDevicemajor :: Int64,
+    -- | Gid of the device.
+    _linuxDevicegid :: Word32,
+    -- | Device type, block, char, etc.
+    _linuxDevicetype :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON LinuxDevice where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
+
+instance ToJSON LinuxDevice where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
+
+makeLenses ''LinuxDevice
+
+
+-- | ListContainer Namespaces contains the identifiers of the container's Linux namespaces
+data ListContainerNamespaces = ListContainerNamespaces
+  { -- | Cgroup namespace.
+    _listContainerNamespacesCgroup :: Maybe Text,
+    -- | Mount namespace.
+    _listContainerNamespacesMnt :: Maybe Text,
+    -- | Network namespace.
+    _listContainerNamespacesNet :: Maybe Text,
+    -- | IPC namespace.
+    _listContainerNamespacesIpc :: Maybe Text,
+    -- | User namespace.
+    _listContainerNamespacesUser :: Maybe Text,
+    -- | UTS namespace.
+    _listContainerNamespacesUts :: Maybe Text,
+    -- | PID namespace.
+    _listContainerNamespacesPidns :: Maybe Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ListContainerNamespaces where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 24, omitNothingFields = True})
+
+instance ToJSON ListContainerNamespaces where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 24, omitNothingFields = True})
+
+makeLenses ''ListContainerNamespaces
+
+-- | Listcontainer describes a container suitable for listing
+data ListContainer = ListContainer
+  { -- | If the container is part of Pod, the Pod name.
+    _listContainerPodName :: Text,
+    -- | Status is a human-readable approximation of a duration for json output.
+    _listContainerStatus :: Text,
+    -- | State of container.
+    _listContainerState :: Text,
+    -- | Container command.
+    _listContainerCommand :: Maybe [Text],
+    -- | Container image.
+    _listContainerImage :: Text,
+    _listContainerSize :: Maybe ContainerSize,
+    -- | The network names assigned to the container.
+    _listContainerNetworks :: Maybe [Text],
+    -- | Human readable container creation time.
+    _listContainerCreatedAt :: Text,
+    -- | If this container is a Pod infra container.
+    _listContainerIsInfra :: Bool,
+    _listContainerNamespaces :: ListContainerNamespaces,
+    -- | Container creation time.
+    _listContainerCreated :: UTCTime,
+    -- | Time when container started.
+    _listContainerStartedAt :: Int64,
+    -- | The names assigned to the container.
+    _listContainerNames :: [Text],
+    -- | Time container exited.
+    _listContainerExitedAt :: Int64,
+    -- | Port mappings.
+    _listContainerPorts :: Maybe [PortMapping],
+    -- | Container image ID.
+    _listContainerImageID :: Text,
+    -- | The process id of the container.
+    _listContainerPid :: Int64,
+    -- | The unique identifier for the container.
+    _listContainerId :: Text,
+    -- | Labels for container.
+    _listContainerLabels :: Maybe (M.Map Text Text),
+    -- | If container has exited, the return code from the command.
+    _listContainerExitCode :: Int32,
+    -- | If the container is part of Pod, the Pod ID.
+    _listContainerPod :: Maybe Text,
+    -- | If container has exited\/stopped.
+    _listContainerExited :: Bool,
+    -- | AutoRemove.
+    _listContainerAutoRemove :: Bool
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ListContainer where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
+
+instance ToJSON ListContainer where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
+
+makeLenses ''ListContainer
+
+
+-- | NamedVolume holds information about a named volume that will be mounted into
+-- the container.
+data NamedVolume = NamedVolume
+  { -- | Destination to mount the named volume within the container.
+    _namedVolumeDest :: Text,
+    -- | Name is the name of the named volume to be mounted.
+    _namedVolumeName :: Text,
+    -- | Options are options that the named volume will be mounted with.
+    _namedVolumeOptions :: [Text]
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON NamedVolume where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
+
+instance ToJSON NamedVolume where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
+
+makeLenses ''NamedVolume
+
+
+-- | ImageVolume is a volume based on a container image.  The container image is
+-- first mounted on the host and is then bind-mounted into the container.  An
+-- ImageVolume is always mounted read only.
+data ImageVolume = ImageVolume
+  { -- | Destination is the absolute path of the mount in the container.
+    _imageVolumeDestination :: Text,
+    -- | ReadWrite sets the volume writable.
+    _imageVolumeReadWrite :: Bool,
+    -- | Source is the source of the image volume.
+    _imageVolumeSource :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ImageVolume where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
+
+instance ToJSON ImageVolume where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
+
+makeLenses ''ImageVolume
+
+
+
+-- | OverlayVolume holds information about a overlay volume that will be mounted into
+-- the container.
+data OverlayVolume = OverlayVolume
+  { -- | Destination is the absolute path where the mount will be placed in the container.
+    _overlayVolumedestination :: Text,
+    -- | Source specifies the source path of the mount.
+    _overlayVolumesource :: Text,
+    -- | Options holds overlay volume options.
+    _overlayVolumeoptions :: [Text]
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON OverlayVolume where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
+
+instance ToJSON OverlayVolume where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
+
+makeLenses ''OverlayVolume
+
+
+-- | ImageSummary image summary
+data ImageSummary = ImageSummary
+  { -- | virtual size.
+    _imageSummaryVirtualSize :: Int64,
+    -- | shared size.
+    _imageSummarySharedSize :: Int64,
+    -- | size.
+    _imageSummarySize :: Int64,
+    -- | created.
+    _imageSummaryCreated :: Int64,
+    -- | repo tags.
+    _imageSummaryRepoTags :: Maybe [Text],
+    -- | containers.
+    _imageSummaryContainers :: Int64,
+    -- | Id.
+    _imageSummaryId :: Text,
+    -- | labels.
+    _imageSummaryLabels :: Maybe (M.Map Text Text),
+    -- | repo digests.
+    _imageSummaryRepoDigests :: Maybe [Text],
+    -- | parent Id.
+    _imageSummaryParentId :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ImageSummary where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 13, omitNothingFields = True})
+
+instance ToJSON ImageSummary where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 13, omitNothingFields = True})
+
+makeLenses ''ImageSummary
+
+
+data ImageTreeResponse = ImageTreeResponse
+  { _imageTreeResponseTree :: Text,
+    _imageTreeResponselayers :: Maybe [Text]
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ImageTreeResponse where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 18, omitNothingFields = True})
+
+instance ToJSON ImageTreeResponse where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 18, omitNothingFields = True})
+
+makeLenses ''ImageTreeResponse
+
+
+data ContainerChange = ContainerChange
+  { _containerChangePath :: Text,
+    _containerChangeKind :: ContainerChangeKind
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ContainerChange where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 16, omitNothingFields = True})
+
+instance ToJSON ContainerChange where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 16, omitNothingFields = True})
+
+makeLenses ''ContainerChange
+
+
+data ImagesPullResponse = ImagesPullResponse
+  { -- | Stream used to provide output from c\/image.
+    _imagesPullResponsestream :: Maybe Text,
+    -- | Images contains the ID's of the images pulled.
+    _imagesPullResponseimages :: Maybe [Text],
+    -- | Error contains text of errors from c\/image.
+    _imagesPullResponseerror :: Maybe Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ImagesPullResponse where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 19, omitNothingFields = True})
+
+instance ToJSON ImagesPullResponse where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 19, omitNothingFields = True})
+
+makeLenses ''ImagesPullResponse
+
+
+-- | DNS contains values interesting for DNS resolvers
+data Dns = Dns
+  { _dnsdomain :: Maybe Text,
+    _dnsoptions :: Maybe [Text],
+    _dnssearch :: Maybe [Text],
+    _dnsnameservers :: Maybe [Text]
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON Dns where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 4, omitNothingFields = True})
+
+instance ToJSON Dns where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 4, omitNothingFields = True})
+
+makeLenses ''Dns
+
+
+-- | NetConf describes a network.
+data NetConf = NetConf
+  { _netConfname :: Maybe Text,
+    _netConfprevResult :: Maybe (M.Map Text Text),
+    _netConftype :: Text,
+    _netConfcniVersion :: Maybe Text,
+    _netConfcapabilities :: Maybe (Maybe (M.Map Text Bool)),
+    _netConfdns :: Maybe Dns
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON NetConf where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 8, omitNothingFields = True})
+
+instance ToJSON NetConf where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 8, omitNothingFields = True})
+
+makeLenses ''NetConf
+
+
+data NetworkConfig = NetworkConfig
+  { _networkConfigNetwork :: NetConf,
+    _networkConfigBytes :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON NetworkConfig where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
+
+instance ToJSON NetworkConfig where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
+
+makeLenses ''NetworkConfig
+
+
+-- | NetworkListReport describes the results from listing networks
+data NetworkListReport = NetworkListReport
+  { _networkListReportDisableCheck :: Bool,
+    _networkListReportName :: Text,
+    _networkListReportPlugins :: [NetworkConfig],
+    _networkListReportLabels :: Maybe (M.Map Text Text),
+    _networkListReportCNIVersion :: Text,
+    _networkListReportBytes :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON NetworkListReport where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 18, omitNothingFields = True})
+
+instance ToJSON NetworkListReport where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 18, omitNothingFields = True})
+
+makeLenses ''NetworkListReport
+
+-- | VolumeUsageData Usage details about the volume. This information is used by the
+-- `GET /system/df` endpoint, and omitted in other endpoints.
+data VolumeUsageData = VolumeUsageData
+  { -- | The number of containers referencing this volume.
+    _volumeUsageDataRefCount :: Int64,
+    -- | Amount of disk space used by the volume (in bytes).
+    _volumeUsageDataSize :: Int64
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON VolumeUsageData where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 16, omitNothingFields = True})
+
+instance ToJSON VolumeUsageData where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 16, omitNothingFields = True})
+
+
+makeLenses ''VolumeUsageData
+
+
+
+-- | Volume volume
+data Volume = Volume
+  { -- | Low-level details about the volume, provided by the volume driver.
+    _volumeStatus :: Maybe (M.Map Text Text),
+    -- | Date\/Time the volume was created.
+    _volumeCreatedAt :: UTCTime,
+    -- | Name of the volume driver used by the volume.
+    _volumeDriver :: Text,
+    -- | Name of the volume.
+    _volumeName :: Text,
+    -- | The level at which the volume exists.
+    _volumeScope :: Text,
+    -- | User-defined key\/value metadata.
+    _volumeLabels :: M.Map Text Text,
+    _volumeUsageData :: Maybe VolumeUsageData,
+    -- | The driver specific options used when creating the volume.
+    _volumeOptions :: M.Map Text Text,
+    -- | Mount path of the volume on the host.
+    _volumeMountpoint :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON Volume where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 7, omitNothingFields = True})
+
+instance ToJSON Volume where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 7, omitNothingFields = True})
+
+makeLenses ''Volume
+
+
+data SecretDriverSpec = SecretDriverSpec
+  { _secretDriverSpecName :: Text,
+    _secretDriverSpecOptions :: Maybe (M.Map Text Text)
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON SecretDriverSpec where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 17, omitNothingFields = True})
+
+instance ToJSON SecretDriverSpec where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 17, omitNothingFields = True})
+
+
+makeLenses ''SecretDriverSpec
+
+
+data SecretSpec = SecretSpec
+  { _secretSpecDriver :: SecretDriverSpec,
+    _secretSpecName :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON SecretSpec where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 11, omitNothingFields = True})
+
+instance ToJSON SecretSpec where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 11, omitNothingFields = True})
+
+
+makeLenses ''SecretSpec
+
+
+data SecretInfoReport = SecretInfoReport
+  { _secretInfoReportCreatedAt :: UTCTime,
+    _secretInfoReportID :: Text,
+    _secretInfoReportSpec :: SecretSpec,
+    _secretInfoReportUpdatedAt :: UTCTime
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON SecretInfoReport where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 17, omitNothingFields = True})
+
+instance ToJSON SecretInfoReport where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 17, omitNothingFields = True})
+
+makeLenses ''SecretInfoReport
+
+
+
+
+data ProcessConfig = ProcessConfig
+  { _processConfigarguments :: [Text],
+    _processConfigentrypoint :: Text,
+    _processConfigprivileged :: Bool,
+    _processConfigtty :: Bool,
+    _processConfiguser :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ProcessConfig where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
+
+instance ToJSON ProcessConfig where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
+
+makeLenses ''ProcessConfig
+
+
+data ExecInspectResponse = ExecInspectResponse
+  { _execInspectResponseCanRemove :: Bool,
+    _execInspectResponseContainerID :: Text,
+    _execInspectResponseExitCode :: Int,
+    _execInspectResponseID :: Text,
+    _execInspectResponseOpenStderr :: Bool,
+    _execInspectResponseOpenStdin :: Bool,
+    _execInspectResponseOpenStdout :: Bool,
+    _execInspectResponseRunning :: Bool,
+    _execInspectResponsePid :: Word64,
+    _execInspectResponseProcessConfig :: ProcessConfig
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ExecInspectResponse where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 20, omitNothingFields = True})
+
+instance ToJSON ExecInspectResponse where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 20, omitNothingFields = True})
+
+makeLenses ''ExecInspectResponse
+
+
+data InspectContainerResponse = InspectContainerResponse
+  { _inspectContainerResponseEffectiveCaps :: [LinuxCapability],
+    _inspectContainerResponseRestartCount :: Int32,
+    _inspectContainerResponseState :: InspectContainerState,
+    _inspectContainerResponseExitCommand :: [Text],
+    _inspectContainerResponseStaticDir :: Text,
+    _inspectContainerResponseArgs :: [Text],
+    _inspectContainerResponseImage :: Text,
+    _inspectContainerResponseConfig :: InspectContainerConfig,
+    _inspectContainerResponseHostnamePath :: Text,
+    _inspectContainerResponseOCIConfigPath :: Maybe Text,
+    _inspectContainerResponseExecIDs :: [Text],
+    _inspectContainerResponsePath :: Text,
+    _inspectContainerResponseConmonPidFile :: Text,
+    _inspectContainerResponseIsInfra :: Bool,
+    _inspectContainerResponseCreated :: UTCTime,
+    _inspectContainerResponseRootfs :: Text,
+    _inspectContainerResponseNamespace :: Text,
+    _inspectContainerResponseMountLabel :: Text,
+    _inspectContainerResponseDriver :: Text,
+    _inspectContainerResponseDependencies :: [Text],
+    _inspectContainerResponseName :: Text,
+    _inspectContainerResponseId :: Text,
+    _inspectContainerResponseProcessLabel :: Text,
+    _inspectContainerResponseResolvConfPath :: Text,
+    _inspectContainerResponseSizeRw :: Maybe Int64,
+    _inspectContainerResponseImageName :: Text,
+    _inspectContainerResponsePod :: Text,
+    _inspectContainerResponseBoundingCaps :: [LinuxCapability],
+    _inspectContainerResponseSizeRootFs :: Maybe Int64,
+    _inspectContainerResponseHostsPath :: Text,
+    _inspectContainerResponseOCIRuntime :: Text,
+    _inspectContainerResponseAppArmorProfile :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON InspectContainerResponse where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 25, omitNothingFields = True})
+
+instance ToJSON InspectContainerResponse where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 25, omitNothingFields = True})
+
+makeLenses ''InspectContainerResponse
+
+
+data ContainerCreateResponse = ContainerCreateResponse
+  { -- | Warnings during container creation.
+    _containerCreateResponseWarnings :: [Text],
+    -- | ID of the container created.
+    _containerCreateResponseId :: Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ContainerCreateResponse where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 24, omitNothingFields = True})
+
+instance ToJSON ContainerCreateResponse where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 24, omitNothingFields = True})
+
+
+makeLenses ''ContainerCreateResponse
+
+
+-- | List containers parameters
+data ContainerListQuery = ContainerListQuery
+  { -- | Return all containers.
+    _containerListQueryall :: Maybe Bool,
+    -- | Return this number of most recently created containers, including non-running ones.
+    _containerListQuerylimit :: Maybe Int,
+    -- | Return the size of container as fields SizeRw and SizeRootFs.
+    _containerListQuerysize :: Maybe Bool,
+    -- | Sync container state with OCI runtime.
+    _containerListQuerysync :: Maybe Bool,
+    -- | A JSON encoded value of the filters (a `map[string][]string`) to process on the containers list.
+    _containerListQueryfilters :: Maybe Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ContainerListQuery where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 19, omitNothingFields = True})
+
+instance ToJSON ContainerListQuery where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 19, omitNothingFields = True})
+
+makeLenses ''ContainerListQuery
+
+
+-- | An empty 'ContainerListQuery'
+defaultContainerListQuery :: ContainerListQuery
+defaultContainerListQuery = ContainerListQuery Nothing Nothing Nothing Nothing Nothing
+
+-- | Generate Systemd Units parameters
+data GenerateSystemdQuery = GenerateSystemdQuery
+  { -- | Use container\/pod names instead of IDs.
+    _generateSystemdQueryuseName :: Maybe Bool,
+    -- | Create a new container instead of starting an existing one.
+    _generateSystemdQuerynew :: Maybe Bool,
+    -- | Do not generate the header including the Podman version and the timestamp.
+    _generateSystemdQuerynoHeader :: Maybe Bool,
+    -- | Stop timeout override.
+    _generateSystemdQuerytime :: Maybe Int,
+    -- | Systemd restart-policy.
+    _generateSystemdQueryrestartPolicy :: Maybe SystemdRestartPolicy,
+    -- | Systemd unit name prefix for containers.
+    _generateSystemdQuerycontainerPrefix :: Maybe Text,
+    -- | Systemd unit name prefix for pods.
+    _generateSystemdQuerypodPrefix :: Maybe Text,
+    -- | Systemd unit name separator between name\/id and prefix.
+    _generateSystemdQueryseparator :: Maybe Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON GenerateSystemdQuery where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 21, omitNothingFields = True})
+
+instance ToJSON GenerateSystemdQuery where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 21, omitNothingFields = True})
+
+
+makeLenses ''GenerateSystemdQuery
+
+
+-- | An empty 'GenerateSystemdQuery'
+defaultGenerateSystemdQuery :: GenerateSystemdQuery
+defaultGenerateSystemdQuery = GenerateSystemdQuery Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+
+-- | List Images parameters
+data ImageListQuery = ImageListQuery
+  { -- | Show all images.
+    _imageListQueryall :: Maybe Bool,
+    -- | A JSON encoded value of the filters (a `map[string][]string`) to process on the images list.
+    _imageListQueryfilters :: Maybe Text
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ImageListQuery where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 15, omitNothingFields = True})
+
+instance ToJSON ImageListQuery where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 15, omitNothingFields = True})
+
+
+makeLenses ''ImageListQuery
+
+
+-- | An empty 'ImageListQuery'
+defaultImageListQuery :: ImageListQuery
+defaultImageListQuery = ImageListQuery Nothing Nothing
+
+-- | Attach to a container parameters
+data AttachQuery = AttachQuery
+  { -- | keys to use for detaching from the container.
+    _attachQuerydetachKeys :: Maybe Text,
+    -- | Stream all logs from the container across the connection.
+    _attachQuerylogs :: Maybe Bool,
+    -- | Attach to the container.
+    _attachQuerystream :: Maybe Bool,
+    -- | Attach to container STDOUT.
+    _attachQuerystdout :: Maybe Bool,
+    -- | Attach to container STDERR.
+    _attachQuerystderr :: Maybe Bool,
+    -- | Attach to container STDIN.
+    _attachQuerystdin :: Maybe Bool
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON AttachQuery where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
+
+instance ToJSON AttachQuery where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
+
+makeLenses ''AttachQuery
+
+
+-- | An empty 'AttachQuery'
+defaultAttachQuery :: AttachQuery
+defaultAttachQuery = AttachQuery Nothing Nothing Nothing Nothing Nothing Nothing
+
+-- | Get container logs parameters
+data LogsQuery = LogsQuery
+  { -- | Keep connection after returning logs.
+    _logsQueryfollow :: Maybe Bool,
+    -- | Only return logs since this time, as a UNIX timestamp.
+    _logsQuerysince :: Maybe UTCTime,
+    -- | Only return logs before this time, as a UNIX timestamp.
+    _logsQueryuntil :: Maybe UTCTime,
+    -- | Add timestamps to every log line.
+    _logsQuerytimestamps :: Maybe Bool,
+    -- | Only return this number of log lines from the end of the logs.
+    _logsQuerytail :: Maybe Word64
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON LogsQuery where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 10, omitNothingFields = True})
+
+instance ToJSON LogsQuery where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 10, omitNothingFields = True})
+
+makeLenses ''LogsQuery
+
+
+-- | An empty 'LogsQuery'
+defaultLogsQuery :: LogsQuery
+defaultLogsQuery = LogsQuery Nothing Nothing Nothing Nothing Nothing
+
+-- | Pull images parameters
+data ImagePullQuery = ImagePullQuery
+  { -- | Mandatory reference to the image (e.
+    _imagePullQueryreference :: Text,
+    -- | username:password for the registry.
+    _imagePullQuerycredentials :: Maybe Text,
+    -- | Pull image for the specified architecture.
+    _imagePullQueryArch :: Maybe Text,
+    -- | Pull image for the specified operating system.
+    _imagePullQueryOS :: Maybe Text,
+    -- | Pull image for the specified variant.
+    _imagePullQueryVariant :: Maybe Text,
+    -- | Require TLS verification.
+    _imagePullQuerytlsVerify :: Maybe Bool,
+    -- | Pull all tagged images in the repository.
+    _imagePullQueryallTags :: Maybe Bool
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ImagePullQuery where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 15, omitNothingFields = True})
+
+instance ToJSON ImagePullQuery where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 15, omitNothingFields = True})
+
+
+makeLenses ''ImagePullQuery
+
+
+-- | Create an exec instance parameters
+data ExecConfig = ExecConfig
+  { -- | A list of environment variables in the form ["VAR=value", .
+    _execConfigEnv :: Maybe [Text],
+    -- | Runs the exec process with extended privileges.
+    _execConfigPrivileged :: Maybe Bool,
+    -- | The working directory for the exec process inside the container.
+    _execConfigWorkingDir :: Maybe Text,
+    -- | "The user, and optionally, group to run the exec process inside the container.
+    _execConfigUser :: Maybe Text,
+    -- | Attach to stdin of the exec command.
+    _execConfigAttachStdin :: Maybe Bool,
+    -- | Command to run, as a string or array of strings.
+    _execConfigCmd :: [Text],
+    -- | Attach to stderr of the exec command.
+    _execConfigAttachStderr :: Maybe Bool,
+    -- | "Override the key sequence for detaching a container.
+    _execConfigDetachKeys :: Maybe Text,
+    -- | Attach to stdout of the exec command.
+    _execConfigAttachStdout :: Maybe Bool,
+    -- | Allocate a pseudo-TTY.
+    _execConfigTty :: Maybe Bool
+  }
+  deriving stock (Show, Eq, Generic)
+
+instance FromJSON ExecConfig where
+  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 11, omitNothingFields = True})
+
+instance ToJSON ExecConfig where
+  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 11, omitNothingFields = True})
+
+
+makeLenses ''ExecConfig
+
 
 -- | SpecGenerator creates an OCI spec and Libpod configuration options to create
 -- a container based on the given configuration.
@@ -505,744 +1376,15 @@ data SpecGenerator = SpecGenerator
   }
   deriving stock (Show, Eq, Generic)
 
+makeLenses ''SpecGenerator
+
+
 instance FromJSON SpecGenerator where
   parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
 
 instance ToJSON SpecGenerator where
   toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
 
--- | PortMapping is one or more ports that will be mapped into the container.
-data PortMapping = PortMapping
-  { -- | HostPort is the port number that will be forwarded from the host into the container.
-    _portMappinghost_port :: Word16,
-    -- | Protocol is the protocol forward.
-    _portMappingprotocol :: Text,
-    -- | ContainerPort is the port number that will be exposed from the container.
-    _portMappingcontainer_port :: Word16,
-    -- | Range is the number of ports that will be forwarded, starting at HostPort and ContainerPort and counting up.
-    _portMappingrange :: Word16,
-    -- | HostIP is the IP that we will bind to on the host.
-    _portMappinghost_ip :: Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON PortMapping where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
-
-instance ToJSON PortMapping where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
-
--- | Listcontainer describes a container suitable for listing
-data ListContainer = ListContainer
-  { -- | If the container is part of Pod, the Pod name.
-    _listContainerPodName :: Text,
-    -- | Status is a human-readable approximation of a duration for json output.
-    _listContainerStatus :: Text,
-    -- | State of container.
-    _listContainerState :: Text,
-    -- | Container command.
-    _listContainerCommand :: Maybe [Text],
-    -- | Container image.
-    _listContainerImage :: Text,
-    _listContainerSize :: Maybe ContainerSize,
-    -- | The network names assigned to the container.
-    _listContainerNetworks :: Maybe [Text],
-    -- | Human readable container creation time.
-    _listContainerCreatedAt :: Text,
-    -- | If this container is a Pod infra container.
-    _listContainerIsInfra :: Bool,
-    _listContainerNamespaces :: ListContainerNamespaces,
-    -- | Container creation time.
-    _listContainerCreated :: UTCTime,
-    -- | Time when container started.
-    _listContainerStartedAt :: Int64,
-    -- | The names assigned to the container.
-    _listContainerNames :: [Text],
-    -- | Time container exited.
-    _listContainerExitedAt :: Int64,
-    -- | Port mappings.
-    _listContainerPorts :: Maybe [PortMapping],
-    -- | Container image ID.
-    _listContainerImageID :: Text,
-    -- | The process id of the container.
-    _listContainerPid :: Int64,
-    -- | The unique identifier for the container.
-    _listContainerId :: Text,
-    -- | Labels for container.
-    _listContainerLabels :: Maybe (M.Map Text Text),
-    -- | If container has exited, the return code from the command.
-    _listContainerExitCode :: Int32,
-    -- | If the container is part of Pod, the Pod ID.
-    _listContainerPod :: Maybe Text,
-    -- | If container has exited\/stopped.
-    _listContainerExited :: Bool,
-    -- | AutoRemove.
-    _listContainerAutoRemove :: Bool
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ListContainer where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
-
-instance ToJSON ListContainer where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
-
--- | ListContainer Namespaces contains the identifiers of the container's Linux namespaces
-data ListContainerNamespaces = ListContainerNamespaces
-  { -- | Cgroup namespace.
-    _listContainerNamespacesCgroup :: Maybe Text,
-    -- | Mount namespace.
-    _listContainerNamespacesMnt :: Maybe Text,
-    -- | Network namespace.
-    _listContainerNamespacesNet :: Maybe Text,
-    -- | IPC namespace.
-    _listContainerNamespacesIpc :: Maybe Text,
-    -- | User namespace.
-    _listContainerNamespacesUser :: Maybe Text,
-    -- | UTS namespace.
-    _listContainerNamespacesUts :: Maybe Text,
-    -- | PID namespace.
-    _listContainerNamespacesPidns :: Maybe Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ListContainerNamespaces where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 24, omitNothingFields = True})
-
-instance ToJSON ListContainerNamespaces where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 24, omitNothingFields = True})
-
--- | ContainerSize holds the size of the container's root filesystem and top
--- read-write layer.
-data ContainerSize = ContainerSize
-  { _containerSizerwSize :: Int64,
-    _containerSizerootFsSize :: Int64
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ContainerSize where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
-
-instance ToJSON ContainerSize where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
-
--- | Mount specifies a mount for a container.
-data Mount = Mount
-  { -- | Destination is the absolute path where the mount will be placed in the container.
-    _mountdestination :: Text,
-    -- | Source specifies the source path of the mount.
-    _mountsource :: Text,
-    -- | Options are fstab style mount options.
-    _mountoptions :: [Text],
-    -- | Type specifies the mount kind.
-    _mounttype :: Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON Mount where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 6, omitNothingFields = True})
-
-instance ToJSON Mount where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 6, omitNothingFields = True})
-
--- | Namespace describes the namespace
-data Namespace = Namespace
-  { _namespacestring :: Text,
-    _namespacensmode :: Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON Namespace where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 10, omitNothingFields = True})
-
-instance ToJSON Namespace where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 10, omitNothingFields = True})
-
--- | LinuxDevice represents the mknod information for a Linux special device file
-data LinuxDevice = LinuxDevice
-  { -- | Minor is the device's minor number.
-    _linuxDeviceminor :: Int64,
-    -- | Path to the device.
-    _linuxDevicepath :: Text,
-    _linuxDevicefileMode :: FileMode,
-    -- | UID of the device.
-    _linuxDeviceuid :: Word32,
-    -- | Major is the device's major number.
-    _linuxDevicemajor :: Int64,
-    -- | Gid of the device.
-    _linuxDevicegid :: Word32,
-    -- | Device type, block, char, etc.
-    _linuxDevicetype :: Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON LinuxDevice where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
-
-instance ToJSON LinuxDevice where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
-
--- | NamedVolume holds information about a named volume that will be mounted into
--- the container.
-data NamedVolume = NamedVolume
-  { -- | Destination to mount the named volume within the container.
-    _namedVolumeDest :: Text,
-    -- | Name is the name of the named volume to be mounted.
-    _namedVolumeName :: Text,
-    -- | Options are options that the named volume will be mounted with.
-    _namedVolumeOptions :: [Text]
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON NamedVolume where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
-
-instance ToJSON NamedVolume where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
-
--- | ImageVolume is a volume based on a container image.  The container image is
--- first mounted on the host and is then bind-mounted into the container.  An
--- ImageVolume is always mounted read only.
-data ImageVolume = ImageVolume
-  { -- | Destination is the absolute path of the mount in the container.
-    _imageVolumeDestination :: Text,
-    -- | ReadWrite sets the volume writable.
-    _imageVolumeReadWrite :: Bool,
-    -- | Source is the source of the image volume.
-    _imageVolumeSource :: Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ImageVolume where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
-
-instance ToJSON ImageVolume where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
-
--- | LogConfig describes the logging characteristics for a container
-data LogConfig = LogConfig
-  { -- | LogPath is the path the container's logs will be stored at.
-    _logConfigpath :: Text,
-    -- | Size is the maximum size of the log file Optional.
-    _logConfigsize :: Int64,
-    -- | LogDriver is the container's log driver.
-    _logConfigdriver :: Text,
-    -- | A set of options to accompany the log driver.
-    _logConfigoptions :: M.Map Text Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON LogConfig where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 10, omitNothingFields = True})
-
-instance ToJSON LogConfig where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 10, omitNothingFields = True})
-
--- | OverlayVolume holds information about a overlay volume that will be mounted into
--- the container.
-data OverlayVolume = OverlayVolume
-  { -- | Destination is the absolute path where the mount will be placed in the container.
-    _overlayVolumedestination :: Text,
-    -- | Source specifies the source path of the mount.
-    _overlayVolumesource :: Text,
-    -- | Options holds overlay volume options.
-    _overlayVolumeoptions :: [Text]
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON OverlayVolume where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
-
-instance ToJSON OverlayVolume where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
-
--- | ImageSummary image summary
-data ImageSummary = ImageSummary
-  { -- | virtual size.
-    _imageSummaryVirtualSize :: Int64,
-    -- | shared size.
-    _imageSummarySharedSize :: Int64,
-    -- | size.
-    _imageSummarySize :: Int64,
-    -- | created.
-    _imageSummaryCreated :: Int64,
-    -- | repo tags.
-    _imageSummaryRepoTags :: Maybe [Text],
-    -- | containers.
-    _imageSummaryContainers :: Int64,
-    -- | Id.
-    _imageSummaryId :: Text,
-    -- | labels.
-    _imageSummaryLabels :: Maybe (M.Map Text Text),
-    -- | repo digests.
-    _imageSummaryRepoDigests :: Maybe [Text],
-    -- | parent Id.
-    _imageSummaryParentId :: Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ImageSummary where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 13, omitNothingFields = True})
-
-instance ToJSON ImageSummary where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 13, omitNothingFields = True})
-
-data ImageTreeResponse = ImageTreeResponse
-  { _imageTreeResponseTree :: Text,
-    _imageTreeResponselayers :: Maybe [Text]
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ImageTreeResponse where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 18, omitNothingFields = True})
-
-instance ToJSON ImageTreeResponse where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 18, omitNothingFields = True})
-
-data ContainerChange = ContainerChange
-  { _containerChangePath :: Text,
-    _containerChangeKind :: ContainerChangeKind
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ContainerChange where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 16, omitNothingFields = True})
-
-instance ToJSON ContainerChange where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 16, omitNothingFields = True})
-
-data ImagesPullResponse = ImagesPullResponse
-  { -- | Stream used to provide output from c\/image.
-    _imagesPullResponsestream :: Maybe Text,
-    -- | Images contains the ID's of the images pulled.
-    _imagesPullResponseimages :: Maybe [Text],
-    -- | Error contains text of errors from c\/image.
-    _imagesPullResponseerror :: Maybe Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ImagesPullResponse where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 19, omitNothingFields = True})
-
-instance ToJSON ImagesPullResponse where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 19, omitNothingFields = True})
-
--- | DNS contains values interesting for DNS resolvers
-data Dns = Dns
-  { _dnsdomain :: Maybe Text,
-    _dnsoptions :: Maybe [Text],
-    _dnssearch :: Maybe [Text],
-    _dnsnameservers :: Maybe [Text]
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON Dns where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 4, omitNothingFields = True})
-
-instance ToJSON Dns where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 4, omitNothingFields = True})
-
--- | NetConf describes a network.
-data NetConf = NetConf
-  { _netConfname :: Maybe Text,
-    _netConfprevResult :: Maybe (M.Map Text Text),
-    _netConftype :: Text,
-    _netConfcniVersion :: Maybe Text,
-    _netConfcapabilities :: Maybe (Maybe (M.Map Text Bool)),
-    _netConfdns :: Maybe Dns
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON NetConf where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 8, omitNothingFields = True})
-
-instance ToJSON NetConf where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 8, omitNothingFields = True})
-
-data NetworkConfig = NetworkConfig
-  { _networkConfigNetwork :: NetConf,
-    _networkConfigBytes :: Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON NetworkConfig where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
-
-instance ToJSON NetworkConfig where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
-
--- | NetworkListReport describes the results from listing networks
-data NetworkListReport = NetworkListReport
-  { _networkListReportDisableCheck :: Bool,
-    _networkListReportName :: Text,
-    _networkListReportPlugins :: [NetworkConfig],
-    _networkListReportLabels :: Maybe (M.Map Text Text),
-    _networkListReportCNIVersion :: Text,
-    _networkListReportBytes :: Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON NetworkListReport where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 18, omitNothingFields = True})
-
-instance ToJSON NetworkListReport where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 18, omitNothingFields = True})
-
--- | Volume volume
-data Volume = Volume
-  { -- | Low-level details about the volume, provided by the volume driver.
-    _volumeStatus :: Maybe (M.Map Text Text),
-    -- | Date\/Time the volume was created.
-    _volumeCreatedAt :: UTCTime,
-    -- | Name of the volume driver used by the volume.
-    _volumeDriver :: Text,
-    -- | Name of the volume.
-    _volumeName :: Text,
-    -- | The level at which the volume exists.
-    _volumeScope :: Text,
-    -- | User-defined key\/value metadata.
-    _volumeLabels :: M.Map Text Text,
-    _volumeUsageData :: Maybe VolumeUsageData,
-    -- | The driver specific options used when creating the volume.
-    _volumeOptions :: M.Map Text Text,
-    -- | Mount path of the volume on the host.
-    _volumeMountpoint :: Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON Volume where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 7, omitNothingFields = True})
-
-instance ToJSON Volume where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 7, omitNothingFields = True})
-
--- | VolumeUsageData Usage details about the volume. This information is used by the
--- `GET /system/df` endpoint, and omitted in other endpoints.
-data VolumeUsageData = VolumeUsageData
-  { -- | The number of containers referencing this volume.
-    _volumeUsageDataRefCount :: Int64,
-    -- | Amount of disk space used by the volume (in bytes).
-    _volumeUsageDataSize :: Int64
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON VolumeUsageData where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 16, omitNothingFields = True})
-
-instance ToJSON VolumeUsageData where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 16, omitNothingFields = True})
-
-data SecretInfoReport = SecretInfoReport
-  { _secretInfoReportCreatedAt :: UTCTime,
-    _secretInfoReportID :: Text,
-    _secretInfoReportSpec :: SecretSpec,
-    _secretInfoReportUpdatedAt :: UTCTime
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON SecretInfoReport where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 17, omitNothingFields = True})
-
-instance ToJSON SecretInfoReport where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 17, omitNothingFields = True})
-
-data SecretSpec = SecretSpec
-  { _secretSpecDriver :: SecretDriverSpec,
-    _secretSpecName :: Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON SecretSpec where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 11, omitNothingFields = True})
-
-instance ToJSON SecretSpec where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 11, omitNothingFields = True})
-
-data SecretDriverSpec = SecretDriverSpec
-  { _secretDriverSpecName :: Text,
-    _secretDriverSpecOptions :: Maybe (M.Map Text Text)
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON SecretDriverSpec where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 17, omitNothingFields = True})
-
-instance ToJSON SecretDriverSpec where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 17, omitNothingFields = True})
-
-data ProcessConfig = ProcessConfig
-  { _processConfigarguments :: [Text],
-    _processConfigentrypoint :: Text,
-    _processConfigprivileged :: Bool,
-    _processConfigtty :: Bool,
-    _processConfiguser :: Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ProcessConfig where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
-
-instance ToJSON ProcessConfig where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 14, omitNothingFields = True})
-
-data ExecInspectResponse = ExecInspectResponse
-  { _execInspectResponseCanRemove :: Bool,
-    _execInspectResponseContainerID :: Text,
-    _execInspectResponseExitCode :: Int,
-    _execInspectResponseID :: Text,
-    _execInspectResponseOpenStderr :: Bool,
-    _execInspectResponseOpenStdin :: Bool,
-    _execInspectResponseOpenStdout :: Bool,
-    _execInspectResponseRunning :: Bool,
-    _execInspectResponsePid :: Word64,
-    _execInspectResponseProcessConfig :: ProcessConfig
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ExecInspectResponse where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 20, omitNothingFields = True})
-
-instance ToJSON ExecInspectResponse where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 20, omitNothingFields = True})
-
-data InspectContainerResponse = InspectContainerResponse
-  { _inspectContainerResponseEffectiveCaps :: [LinuxCapability],
-    _inspectContainerResponseRestartCount :: Int32,
-    _inspectContainerResponseState :: InspectContainerState,
-    _inspectContainerResponseExitCommand :: [Text],
-    _inspectContainerResponseStaticDir :: Text,
-    _inspectContainerResponseArgs :: [Text],
-    _inspectContainerResponseImage :: Text,
-    _inspectContainerResponseConfig :: InspectContainerConfig,
-    _inspectContainerResponseHostnamePath :: Text,
-    _inspectContainerResponseOCIConfigPath :: Maybe Text,
-    _inspectContainerResponseExecIDs :: [Text],
-    _inspectContainerResponsePath :: Text,
-    _inspectContainerResponseConmonPidFile :: Text,
-    _inspectContainerResponseIsInfra :: Bool,
-    _inspectContainerResponseCreated :: UTCTime,
-    _inspectContainerResponseRootfs :: Text,
-    _inspectContainerResponseNamespace :: Text,
-    _inspectContainerResponseMountLabel :: Text,
-    _inspectContainerResponseDriver :: Text,
-    _inspectContainerResponseDependencies :: [Text],
-    _inspectContainerResponseName :: Text,
-    _inspectContainerResponseId :: Text,
-    _inspectContainerResponseProcessLabel :: Text,
-    _inspectContainerResponseResolvConfPath :: Text,
-    _inspectContainerResponseSizeRw :: Maybe Int64,
-    _inspectContainerResponseImageName :: Text,
-    _inspectContainerResponsePod :: Text,
-    _inspectContainerResponseBoundingCaps :: [LinuxCapability],
-    _inspectContainerResponseSizeRootFs :: Maybe Int64,
-    _inspectContainerResponseHostsPath :: Text,
-    _inspectContainerResponseOCIRuntime :: Text,
-    _inspectContainerResponseAppArmorProfile :: Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON InspectContainerResponse where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 25, omitNothingFields = True})
-
-instance ToJSON InspectContainerResponse where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 25, omitNothingFields = True})
-
-data ContainerCreateResponse = ContainerCreateResponse
-  { -- | Warnings during container creation.
-    _containerCreateResponseWarnings :: [Text],
-    -- | ID of the container created.
-    _containerCreateResponseId :: Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ContainerCreateResponse where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 24, omitNothingFields = True})
-
-instance ToJSON ContainerCreateResponse where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 24, omitNothingFields = True})
-
--- | List containers parameters
-data ContainerListQuery = ContainerListQuery
-  { -- | Return all containers.
-    _containerListQueryall :: Maybe Bool,
-    -- | Return this number of most recently created containers, including non-running ones.
-    _containerListQuerylimit :: Maybe Int,
-    -- | Return the size of container as fields SizeRw and SizeRootFs.
-    _containerListQuerysize :: Maybe Bool,
-    -- | Sync container state with OCI runtime.
-    _containerListQuerysync :: Maybe Bool,
-    -- | A JSON encoded value of the filters (a `map[string][]string`) to process on the containers list.
-    _containerListQueryfilters :: Maybe Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ContainerListQuery where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 19, omitNothingFields = True})
-
-instance ToJSON ContainerListQuery where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 19, omitNothingFields = True})
-
--- | An empty 'ContainerListQuery'
-defaultContainerListQuery :: ContainerListQuery
-defaultContainerListQuery = ContainerListQuery Nothing Nothing Nothing Nothing Nothing
-
--- | Generate Systemd Units parameters
-data GenerateSystemdQuery = GenerateSystemdQuery
-  { -- | Use container\/pod names instead of IDs.
-    _generateSystemdQueryuseName :: Maybe Bool,
-    -- | Create a new container instead of starting an existing one.
-    _generateSystemdQuerynew :: Maybe Bool,
-    -- | Do not generate the header including the Podman version and the timestamp.
-    _generateSystemdQuerynoHeader :: Maybe Bool,
-    -- | Stop timeout override.
-    _generateSystemdQuerytime :: Maybe Int,
-    -- | Systemd restart-policy.
-    _generateSystemdQueryrestartPolicy :: Maybe SystemdRestartPolicy,
-    -- | Systemd unit name prefix for containers.
-    _generateSystemdQuerycontainerPrefix :: Maybe Text,
-    -- | Systemd unit name prefix for pods.
-    _generateSystemdQuerypodPrefix :: Maybe Text,
-    -- | Systemd unit name separator between name\/id and prefix.
-    _generateSystemdQueryseparator :: Maybe Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON GenerateSystemdQuery where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 21, omitNothingFields = True})
-
-instance ToJSON GenerateSystemdQuery where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 21, omitNothingFields = True})
-
--- | An empty 'GenerateSystemdQuery'
-defaultGenerateSystemdQuery :: GenerateSystemdQuery
-defaultGenerateSystemdQuery = GenerateSystemdQuery Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
-
--- | List Images parameters
-data ImageListQuery = ImageListQuery
-  { -- | Show all images.
-    _imageListQueryall :: Maybe Bool,
-    -- | A JSON encoded value of the filters (a `map[string][]string`) to process on the images list.
-    _imageListQueryfilters :: Maybe Text
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ImageListQuery where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 15, omitNothingFields = True})
-
-instance ToJSON ImageListQuery where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 15, omitNothingFields = True})
-
--- | An empty 'ImageListQuery'
-defaultImageListQuery :: ImageListQuery
-defaultImageListQuery = ImageListQuery Nothing Nothing
-
--- | Attach to a container parameters
-data AttachQuery = AttachQuery
-  { -- | keys to use for detaching from the container.
-    _attachQuerydetachKeys :: Maybe Text,
-    -- | Stream all logs from the container across the connection.
-    _attachQuerylogs :: Maybe Bool,
-    -- | Attach to the container.
-    _attachQuerystream :: Maybe Bool,
-    -- | Attach to container STDOUT.
-    _attachQuerystdout :: Maybe Bool,
-    -- | Attach to container STDERR.
-    _attachQuerystderr :: Maybe Bool,
-    -- | Attach to container STDIN.
-    _attachQuerystdin :: Maybe Bool
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON AttachQuery where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
-
-instance ToJSON AttachQuery where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 12, omitNothingFields = True})
-
--- | An empty 'AttachQuery'
-defaultAttachQuery :: AttachQuery
-defaultAttachQuery = AttachQuery Nothing Nothing Nothing Nothing Nothing Nothing
-
--- | Get container logs parameters
-data LogsQuery = LogsQuery
-  { -- | Keep connection after returning logs.
-    _logsQueryfollow :: Maybe Bool,
-    -- | Only return logs since this time, as a UNIX timestamp.
-    _logsQuerysince :: Maybe UTCTime,
-    -- | Only return logs before this time, as a UNIX timestamp.
-    _logsQueryuntil :: Maybe UTCTime,
-    -- | Add timestamps to every log line.
-    _logsQuerytimestamps :: Maybe Bool,
-    -- | Only return this number of log lines from the end of the logs.
-    _logsQuerytail :: Maybe Word64
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON LogsQuery where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 10, omitNothingFields = True})
-
-instance ToJSON LogsQuery where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 10, omitNothingFields = True})
-
--- | An empty 'LogsQuery'
-defaultLogsQuery :: LogsQuery
-defaultLogsQuery = LogsQuery Nothing Nothing Nothing Nothing Nothing
-
--- | Pull images parameters
-data ImagePullQuery = ImagePullQuery
-  { -- | Mandatory reference to the image (e.
-    _imagePullQueryreference :: Text,
-    -- | username:password for the registry.
-    _imagePullQuerycredentials :: Maybe Text,
-    -- | Pull image for the specified architecture.
-    _imagePullQueryArch :: Maybe Text,
-    -- | Pull image for the specified operating system.
-    _imagePullQueryOS :: Maybe Text,
-    -- | Pull image for the specified variant.
-    _imagePullQueryVariant :: Maybe Text,
-    -- | Require TLS verification.
-    _imagePullQuerytlsVerify :: Maybe Bool,
-    -- | Pull all tagged images in the repository.
-    _imagePullQueryallTags :: Maybe Bool
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ImagePullQuery where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 15, omitNothingFields = True})
-
-instance ToJSON ImagePullQuery where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 15, omitNothingFields = True})
-
--- | Create an exec instance parameters
-data ExecConfig = ExecConfig
-  { -- | A list of environment variables in the form ["VAR=value", .
-    _execConfigEnv :: Maybe [Text],
-    -- | Runs the exec process with extended privileges.
-    _execConfigPrivileged :: Maybe Bool,
-    -- | The working directory for the exec process inside the container.
-    _execConfigWorkingDir :: Maybe Text,
-    -- | "The user, and optionally, group to run the exec process inside the container.
-    _execConfigUser :: Maybe Text,
-    -- | Attach to stdin of the exec command.
-    _execConfigAttachStdin :: Maybe Bool,
-    -- | Command to run, as a string or array of strings.
-    _execConfigCmd :: [Text],
-    -- | Attach to stderr of the exec command.
-    _execConfigAttachStderr :: Maybe Bool,
-    -- | "Override the key sequence for detaching a container.
-    _execConfigDetachKeys :: Maybe Text,
-    -- | Attach to stdout of the exec command.
-    _execConfigAttachStdout :: Maybe Bool,
-    -- | Allocate a pseudo-TTY.
-    _execConfigTty :: Maybe Bool
-  }
-  deriving stock (Show, Eq, Generic)
-
-instance FromJSON ExecConfig where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 11, omitNothingFields = True})
-
-instance ToJSON ExecConfig where
-  toJSON = genericToJSON (defaultOptions {fieldLabelModifier = drop 11, omitNothingFields = True})
 
 -- | Creates a 'SpecGenerator' by setting all the optional attributes to Nothing
 mkSpecGenerator ::

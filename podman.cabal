@@ -37,6 +37,8 @@ library
                      , http-client-tls        >= 0.2.0    && < 0.4
                      , http-types             < 0.13
                      , linux-capabilities     < 0.2
+                     , microlens
+                     , microlens-th
                      , network                < 4
                      , tar                    < 0.6
                      , text                   >= 0.11.1.0 && < 1.3
