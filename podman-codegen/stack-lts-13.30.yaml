@@ -1,0 +1,9 @@
+resolver: lts-13.30
+
+packages:
+- .
+
+extra-deps:
+- swagger2-2.4@sha256:3fde8c2c6bc091738cba62e63c29d690b711848560d86e82615516869f76140b,4415
+
+

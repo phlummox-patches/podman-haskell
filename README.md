@@ -16,6 +16,11 @@ For the compat API, use the [docker client](https://hackage.haskell.org/package/
 - JSON decoder for API endpoints.
 - HTTP client helper functions.
 
+## Documentation
+
+Haddock documentation is available at
+<https://docs.softwarefactory-project.io/podman-haskell/>.
+
 ## Contribute
 
 Contributions are most welcome, for example the project needs help to:

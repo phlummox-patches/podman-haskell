@@ -1,0 +1,29 @@
+
+resolver: lts-13.30
+
+# User packages to be built.
+# Various formats can be used as shown in the example below.
+#
+# packages:
+# - some-directory
+# - https://example.com/foo/bar/baz-0.0.2.tar.gz
+#   subdirs:
+#   - auto-update
+#   - wai
+packages:
+- podman-codegen
+- .
+- podman-demo
+- podman-quickcheck
+
+# extra-deps:
+# - acme-missiles-0.3
+# - git: https://github.com/commercialhaskell/stack.git
+#   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
+#
+# extra-deps: []
+extra-deps:
+- git: https://github.com/phlummox-patches/linux-capabilities-haskell.git
+  commit: feb544aa5bfd20b9a8b2577556e9d49c5c27f1d4
+- swagger2-2.4@sha256:3fde8c2c6bc091738cba62e63c29d690b711848560d86e82615516869f76140b,4415
+

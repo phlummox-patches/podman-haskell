@@ -1,4 +1,4 @@
-cabal-version:       2.4
+cabal-version:       1.12
 name:                podman-quickcheck
 synopsis:            A tool to quickcheck podman client
 version:             0.0.0.0
