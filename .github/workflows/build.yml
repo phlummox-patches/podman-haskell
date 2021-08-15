@@ -28,7 +28,7 @@ jobs:
           # TODO:
           # ghc-version: ${{ matrix.ghc }}
           # cabal-version: ${{ matrix.cabal }}
-          ghc-version: '8.0.1'
+          ghc-version: '8.8'
           cabal-version: '2.2'
 
       - name: Cache
