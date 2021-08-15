@@ -23,8 +23,9 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Set up Haskell
-        uses: actions/setup-haskell@v1
-        with: #TODO
+        uses: haskell/actions/setup@v1.2.3
+        with:
+          # TODO:
           # ghc-version: ${{ matrix.ghc }}
           # cabal-version: ${{ matrix.cabal }}
           ghc-version: '8.0.1'
