@@ -1,1 +1,10 @@
-packages: . ./podman-codegen/ ./podman-quickcheck/ ./podman-demo/
+
+-- requires cabal >= 2.4
+source-repository-package
+  type: git
+  location: https://github.com/phlummox-patches/linux-capabilities-haskell.git
+  tag: feb544aa5bfd20b9a8b2577556e9d49c5c27f1d4
+
+packages: .  ./podman-codegen/ ./podman-quickcheck/ ./podman-demo/
+
+
