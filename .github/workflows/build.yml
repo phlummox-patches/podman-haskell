@@ -178,4 +178,34 @@ jobs:
 
           set +ex
 
+      - name: run tests using ${{ matrix.builder }} on ${{matrix.os}}
+        run: |
+          set -ex
+
+          case ${{ matrix.builder }} in
+            cabal*)
+              .ci-scripts/cabal-test.sh
+            ;;
+            stack*)
+              # build project with stack
+              stack --version
+              STACK_RESOLVER="$(echo ${{ matrix.builder }} | sed 's/^stack-//')"
+              stack --resolver="$STACK_RESOLVER" setup
+              stack --resolver="$STACK_RESOLVER" ghc -- --version
+              # get appropriate stack.yaml
+              if [ -f "stack-${STACK_RESOLVER}.yaml" ] ; then
+                cp "stack-${STACK_RESOLVER}.yaml" stack.yaml
+              else
+                printf >&2 "not a good idea. custom stack.yaml needed for this repo"
+                exit 1
+              fi
+              stack test
+            ;;
+            *)
+              echo unknown build tool!!
+              exit 1
+            ;;
+          esac
+
+          set +ex
 
