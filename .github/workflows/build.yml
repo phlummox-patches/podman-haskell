@@ -110,9 +110,26 @@ jobs:
 
           export PATH=$HOME/.local/bin:$PATH
 
-          # build codegen with stack
+          # codegen runtime prereqs
+          stack --resolver=lts-17 setup
+          (cd ~ && stack --resolver=lts-17 install ormolu apply-refact hlint)
+
+          # set stack resolver
+          case ${{ matrix.builder }} in
+            cabal*)
+              export STACK_RESOLVER=lts-13.30
+            ;;
+            stack*)
+              export STACK_RESOLVER="$(echo ${{ matrix.builder }} | sed 's/^stack-//')"
+            ;;
+            *)
+              echo unknown build tool!!
+              exit 1
+            ;;
+          esac
+
+          # stack setup
           stack --version
-          export STACK_RESOLVER="$(echo ${{ matrix.builder }} | sed 's/^stack-//')"
           stack --resolver="$STACK_RESOLVER" setup
           stack --resolver="$STACK_RESOLVER" ghc -- --version
 
@@ -124,12 +141,8 @@ jobs:
             exit 1
           fi
 
-          # codegen prereqs
-          stack install ormolu apply-refact hlint
-
           # run codegen
           ./regenerate-podman-types.sh
 
           set +ex
-
 
