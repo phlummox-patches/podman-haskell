@@ -84,8 +84,8 @@ jobs:
               # build project with stack
               stack --version
               STACK_RESOLVER="$(echo ${{ matrix.builder }} | sed 's/^stack-//')"
-              stack --resolver="$STACK_RESOLVER" ghc -- --version
               stack --resolver="$STACK_RESOLVER" setup
+              stack --resolver="$STACK_RESOLVER" ghc -- --version
               # get appropriate stack.yaml
               if [ -f "stack-${STACK_RESOLVER}.yaml" ] ; then
                 cp "stack-${STACK_RESOLVER}.yaml" stack.yaml
@@ -109,6 +109,12 @@ jobs:
           set -ex
 
           export PATH=$HOME/.local/bin:$PATH
+
+          # build codegen with stack
+          stack --version
+          export STACK_RESOLVER="$(echo ${{ matrix.builder }} | sed 's/^stack-//')"
+          stack --resolver="$STACK_RESOLVER" setup
+          stack --resolver="$STACK_RESOLVER" ghc -- --version
 
           # get appropriate stack.yaml
           if [ -f "stack-${STACK_RESOLVER}.yaml" ] ; then
