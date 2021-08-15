@@ -1,7 +1,7 @@
 cabal-version:       1.12
 name:                podman-codegen
 synopsis:            A tool to generate haskell types from swagger file
-version:             0.0.0.0
+version:             0.0.0.1
 license:             Apache-2.0
 category:            System
 build-type:          Simple
@@ -28,9 +28,12 @@ executable podman-codegen
 
   build-depends:       base                      < 5
                      , aeson                     >= 1.0.0.0  && < 1.6
+                     , bytestring
                      , insert-ordered-containers
+                     , microlens
                      , mtl
                      , swagger2                  >= 2.4
                      , text                      >= 0.11.1.0 && < 1.3
+                     , wreq
                      , yaml
   main-is:             Codegen.hs
