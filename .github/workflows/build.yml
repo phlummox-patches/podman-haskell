@@ -7,13 +7,19 @@ on: [push, pull_request]
 jobs:
   build:
 
+    # this env includes a "secret" called
+    # CACHE_DATE, that you can change in order to clear the
+    # cache if necessary.
+    # see https://github.community/t/how-to-clear-cache-in-github-actions/129038/4
+    environment: ci-env
+
     runs-on: ${{ matrix.os }}
     env:
       STACK_VERSION: "2.1.3"
     strategy:
       matrix:
         builder:
-          #- 'cabal-ghc-8.0.1'
+          - 'cabal'
           - 'stack-lts-13.30'
         os: [ubuntu-18.04] #, macOS-latest, windows-latest]
 
@@ -29,7 +35,7 @@ jobs:
           # ghc-version: ${{ matrix.ghc }}
           # cabal-version: ${{ matrix.cabal }}
           ghc-version: '8.8'
-          cabal-version: '2.2'
+          cabal-version: '2.4'
 
       - name: Cache
         uses: actions/cache@v2
@@ -41,8 +47,9 @@ jobs:
             ~/.local
             ~/.ghc
             ~/.stack
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.builder }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.builder }}-${{ secrets.CACHE_DATE }}
           restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.builder }}-${{ secrets.CACHE_DATE }}
             ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.builder }}
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
