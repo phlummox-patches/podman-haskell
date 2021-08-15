@@ -1,6 +1,7 @@
 # podman
 
 [![Hackage](https://img.shields.io/hackage/v/podman.svg)](https://hackage.haskell.org/package/podman)
+[![build](https://github.com/phlummox-patches/podman-haskell/actions/workflows/build.yml/badge.svg)](https://github.com/phlummox-patches/podman-haskell/actions/workflows/build.yml)
 
 A client library for [podman](https://podman.io)
 
