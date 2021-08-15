@@ -10,8 +10,10 @@ is maintained and tested, use the original.
 
 ## Overview and scope
 
-At a high level, the scope of podman-haskell is to provide a REST client for the podman API based on the swagger description.
-The goal is to validate the definitions and enable using the podman service in Haskell application.
+At a high level, the scope of podman-haskell is to provide a REST client for
+the podman API based on the swagger description.
+The goal is to validate the definitions and enable using the podman service in
+Haskell application.
 
 For the compat API, use the [docker client](https://hackage.haskell.org/package/docker) instead.
 
