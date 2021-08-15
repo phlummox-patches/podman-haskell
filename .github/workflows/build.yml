@@ -104,5 +104,26 @@ jobs:
 
           set +ex
 
+      - name: run codegen on ${{matrix.os}}
+        run: |
+          set -ex
+
+          export PATH=$HOME/.local/bin:$PATH
+
+          # get appropriate stack.yaml
+          if [ -f "stack-${STACK_RESOLVER}.yaml" ] ; then
+            cp "stack-${STACK_RESOLVER}.yaml" stack.yaml
+          else
+            printf >&2 "not a good idea. custom stack.yaml needed for this repo"
+            exit 1
+          fi
+
+          # codegen prereqs
+          stack install ormolu apply-refact hlint
+
+          # run codegen
+          ./regenerate-podman-types.sh
+
+          set +ex
 
 
