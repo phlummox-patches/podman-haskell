@@ -16,21 +16,41 @@ import Control.Applicative ((<|>))
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer
-import Data.Aeson (ToJSON (..))
-import qualified Data.Char as C
-import qualified Data.HashMap.Strict.InsOrd as M
-import Data.List (replicate)
-import Data.Maybe (catMaybes, fromMaybe)
-import Data.Proxy
-import Data.Swagger hiding (get, name, schema)
-import Data.Swagger.Internal (SwaggerKind (..))
-import Data.Swagger.Lens (paramSchema)
-import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import Data.Yaml (decodeFileEither)
-import Debug.Trace (trace)
-import GHC.Generics (Generic)
+
+import            Data.Aeson (ToJSON (..))
+import qualified  Data.ByteString as BS
+import qualified  Data.ByteString.Lazy as BSL
+import qualified  Data.Char as C
+import qualified  Data.HashMap.Strict.InsOrd as M
+import            Data.List (replicate)
+import            Data.Maybe (catMaybes, fromMaybe)
+import            Data.Proxy
+import            Data.Swagger hiding (get, name, schema)
+import            Data.Swagger.Internal (SwaggerKind (..))
+import            Data.Swagger.Lens -- (paramSchema)
+import            Data.Text (Text)
+import qualified  Data.Text as T
+import qualified  Data.Text.IO as T
+import            Data.Version (showVersion)
+import qualified  Data.Yaml as Y
+
+--import            Debug.Trace (trace)
+import            GHC.Generics (Generic)
+import            Lens.Micro
+import qualified  Network.Wreq as W
+import qualified  Paths_podman_codegen as Paths (version)
+import            System.IO
+import            System.Environment
+
+{-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
+
+
+codegen_version :: String
+codegen_version = showVersion Paths.version
+
+schema_url :: String -> String
+schema_url  schema_version   = "https://storage.googleapis.com/libpod-master-releases/swagger-v" <> schema_version <> ".yaml"
+
 
 type TypeName = Text
 
@@ -49,6 +69,14 @@ defTypes, defSmartCtor, responseTypes, extraTypes :: [TypeName]
 defTypes =
   [ "Error",
     "Version",
+    -- "Duration",
+    "Health",
+    "HealthConfig",
+    "HealthcheckResult",
+    "HealthCheckResults",
+    "HealthCheckLog",
+    "Schema2HealthConfig",
+    "IDMap",
     "InspectContainerState",
     "InspectContainerConfig",
     "SpecGenerator",
@@ -59,6 +87,17 @@ defTypes =
     "Mount",
     "Namespace",
     "LinuxDevice",
+    "LinuxCPU",
+    "LinuxThrottleDevice",
+    "LinuxWeightDevice",
+    "LinuxBlockIO",
+    "LinuxDeviceCgroup",
+    "LinuxHugepageLimit",
+    "LinuxInterfacePriority",
+    "LinuxMemory",
+    "LinuxNetwork",
+    "LinuxPids",
+    "LinuxResources",
     "NamedVolume",
     "ImageVolume",
     "LogConfig",
@@ -69,6 +108,7 @@ defTypes =
     "ContainerChange",
     -- images
     "LibpodImagesPullReport",
+    "POSIXRlimit",
     -- networks
     "DNS",
     "NetConf",
@@ -78,6 +118,8 @@ defTypes =
     "Volume",
     "VolumeUsageData",
     -- secrets
+    "InspectSecret",
+    "Secret",
     "SecretInfoReport",
     "SecretSpec",
     "SecretDriverSpec",
@@ -92,18 +134,69 @@ responseTypes = ["LibpodInspectContainerResponse", "ContainerCreateResponse"]
 -- | Provided data types
 extraTypes = ["LinuxCapability", "SystemdRestartPolicy", "ExecResponse", "SecretCreateResponse", "ContainerChangeKind", "ContainerStatus"]
 
+makeLensesFor = [
+    "AttachQuery"
+  , "ContainerChange"
+  , "ContainerCreateResponse"
+  , "ContainerListQuery"
+  , "ContainerSize"
+  , "Dns"
+  , "Error"
+  , "ExecConfig"
+  , "ExecInspectResponse"
+  , "ExecResponse"
+  , "GenerateSystemdQuery"
+  , "ImageListQuery"
+  , "ImagePullQuery"
+  , "ImagesPullResponse"
+  , "ImageSummary"
+  , "ImageTreeResponse"
+  , "ImageVolume"
+  , "InspectContainerConfig"
+  , "InspectContainerResponse"
+  , "InspectContainerState"
+  , "LinuxDevice"
+  , "ListContainer"
+  , "ListContainerNamespaces"
+  , "LogConfig"
+  , "LogsQuery"
+  , "Mount"
+  , "NamedVolume"
+  , "Namespace"
+  , "NetConf"
+  , "NetworkConfig"
+  , "NetworkListReport"
+  , "OverlayVolume"
+  , "PortMapping"
+  , "POSIXRlimit"
+  , "ProcessConfig"
+  , "SecretCreateResponse"
+  , "SecretDriverSpec"
+  , "SecretInfoReport"
+  , "SecretSpec"
+  , "SpecGenerator"
+  , "Version"
+  , "Volume"
+  , "VolumeUsageData"
+  ]
+
 -- | Smart constructors
 defSmartCtor = ["SpecGenerator", "ExecConfig", "ImagePullQuery"]
 
 -- | Provided new types
 newTypes :: [(TypeName, Text)]
-newTypes = [("IP", "[Word8]"), ("Signal", "Int64"), ("FileMode", "Word32")]
+newTypes = [
+            ("IP", "[Word8]")
+          , ("Signal", "Int64")
+          , ("FileMode", "Word32")
+          , ("Duration", "Int64")
+          ]
 
 -- | In query data types
 queryTypes :: [(Text, Name, PathItem -> Maybe Operation)]
 queryTypes =
   [ ("/libpod/containers/json", "ContainerListQuery", _pathItemGet),
-    ("/libpod/generate/{name:.*}/systemd", "GenerateSystemdQuery", _pathItemGet),
+    ("/libpod/generate/{name}/systemd", "GenerateSystemdQuery", _pathItemGet),
     ("/images/json", "ImageListQuery", _pathItemGet),
     ("/libpod/containers/{name}/attach", "AttachQuery", _pathItemPost),
     ("/libpod/containers/{name}/logs", "LogsQuery", _pathItemGet),
@@ -235,7 +328,7 @@ skipTypes :: TypeName -> AttrName -> Bool
 skipTypes "netConf" "ipam" = True
 skipTypes "containerListQuery" "pod" = True
 skipTypes "imageListQuery" "digests" = True
-skipTypes _ "Healthcheck" = True
+--skipTypes _ "Healthcheck" = True
 skipTypes "inspectContainerConfig" "Volumes" = True
 skipTypes "inspectContainerConfig" "Timezone" = True
 -- compat value
@@ -246,16 +339,17 @@ skipTypes "logsQuery" n
   | otherwise = False
 skipTypes _ n =
   n
-    `elem` [ "Secrets",
+    `elem` [
+             -- "Secrets",
              "Mounts",
              "HostConfig",
              "NetworkSettings",
              "GraphDriver",
-             "static_mac",
-             "healthconfig",
-             "idmappings",
-             "r_limits",
-             "resource_limits"
+             "static_mac" ,
+           --"healthconfig",
+           "idmappings" --,
+           -- "r_limits",
+           -- "resource_limits"
            ]
 
 -- | Create missing types
@@ -521,9 +615,9 @@ renderCtor name _ =
   where
     -- TODO: generate that list from the schema
     (pre, after, xs) = case name of
-      "SpecGenerator" -> (13, 72, [("image", "Text")])
+      "SpecGenerator" -> (13, 79, [("image", "Text")])
       "ExecConfig" -> (5, 4, [("cmd", "[Text]")])
-      "ImagePullQuery" -> (0, 6, [("reference", "Text")])
+      "ImagePullQuery" -> (0, 7, [("reference", "Text")])
       _ -> error ("Unknown ctor: " <> T.unpack name)
     typeItems = replicate pre Nothing <> map Just xs <> replicate after Nothing
     getValues Nothing = "Nothing"
@@ -547,25 +641,51 @@ getSchema (Just (Inline a)) = a
 getSchema _ = error "bad schema"
 
 -- | Build the Types.hs file
-renderTypes :: Swagger -> Builder ()
-renderTypes Swagger {..} = go
+renderTypes :: String -> Swagger -> StateT Env (Writer Text) ()
+renderTypes schema_version sw@Swagger{..} = go
   where
     allTypes = map fst newTypes <> defTypes <> responseTypes
+    reported_schema_version = sw ^. info . version
     go = do
-      line "{-# LANGUAGE DeriveGeneric, DeriveAnyClass, DerivingStrategies, GeneralizedNewtypeDeriving, OverloadedStrings #-}"
+      line "----------"
+      line $ T.pack $ "-- generated by podman-codegen version " <> codegen_version
+      line $ T.pack $ "-- from swagger file fetched from " <> schema_url schema_version
+      line $ "-- documenting podman API version " <> reported_schema_version
+      line "----------"
+
+      line "\n{- |\n"
+      line $ T.pack $ "generated by podman-codegen version " <> codegen_version <> "\n"
+      line $ "From a swagger file documenting podman API version " <> reported_schema_version <> "\n"
+      line $ T.pack $ "which was fetched from <" <> schema_url schema_version <> "\n"
+              <> ">"
+      line "-}\n"
+
+
+
+      let extensions = [
+              "DeriveGeneric"
+            , "DeriveAnyClass"
+            , "DerivingStrategies"
+            , "GeneralizedNewtypeDeriving"
+            , "OverloadedStrings"
+            , "TemplateHaskell"
+            ]
+      forM_ extensions $ \ext ->
+        line $ "{-# LANGUAGE " <> ext <> " #-}"
       line ""
       line "module Podman.Types"
-      line "  ( -- * System"
-      mapM_ goExport extraTypes
-      line "    -- * Responses"
-      mapM_ goExport allTypes
-      line "    -- * Queries"
-      mapM_ goExportQuery queryTypes
-      line "    -- * Bodies"
-      mapM_ (goExport . (\(_, n, _) -> n)) bodyTypes
-      line "    -- * Smart Constructors"
-      mapM_ goExportCtor defSmartCtor
-      tell "  ) where"
+      line "  ("
+      -- mapM_ goExport extraTypes
+      -- line "    -- * Responses"
+      -- mapM_ goExport allTypes
+      -- line "    -- * Queries"
+      -- mapM_ goExportQuery queryTypes
+      -- line "    -- * Bodies"
+      -- mapM_ (goExport . (\(_, n, _) -> n)) bodyTypes
+      -- line "    -- * Smart Constructors"
+      -- mapM_ goExportCtor defSmartCtor
+      line "      module Podman.Types"
+      line "  ) where"
       line ""
       line "import Data.Aeson (FromJSON (..), Options (fieldLabelModifier, omitNothingFields), ToJSON (..), Value (String, Number), defaultOptions, genericParseJSON, genericToJSON, withText, withScientific)"
       line "import Data.Text (Text)"
@@ -576,6 +696,7 @@ renderTypes Swagger {..} = go
       line "import GHC.Int (Int32, Int64)"
       line "import GHC.Generics (Generic)"
       line "import System.Linux.Capabilities (Capability (..))"
+      line "import Lens.Micro.TH"
       line ""
       linuxCap
       systemdPolicy
@@ -588,7 +709,9 @@ renderTypes Swagger {..} = go
       mapM_ goPath queryTypes
       mapM_ goBody bodyTypes
       mapM_ goSmart defSmartCtor
+      mapM_ goLens makeLensesFor
 
+    goLens name = line $ "makeLenses ''" <> name
     goExport name = line ("  " <> adaptName name <> " (..),")
     goExportCtor name = line ("  mk" <> adaptName name <> ",")
     goExportQuery (_, name, _) = do
@@ -706,9 +829,31 @@ renderTypes Swagger {..} = go
       line $ "    x -> error (\"Unknown " <> name <> "\" <> T.unpack x)"
       line ""
 
+fetch_schema :: String -> IO Swagger
+fetch_schema schema_version = do
+    schema_resp <- either (Left . show) (Right . id) .
+                      Y.decodeEither' .
+                        BSL.toStrict .
+                          (^. W.responseBody) <$> W.get (schema_url schema_version)
+    case schema_resp of
+      Left err -> error err
+      Right r  -> return r
+
+fetch_local_schema :: FilePath -> IO Swagger
+fetch_local_schema schema_path = do
+    Y.decodeFileThrow schema_path
+
+
 main :: IO ()
 main = do
-  schema <- decodeFileEither "swagger-latest.yaml"
-  case schema of
-    Right schema' -> T.putStrLn $ snd $ runWriter $ evalStateT (renderTypes (fixSchema schema')) $ Env 0
-    Left err -> error (show err)
+  args <- getArgs
+  unless (length args == 1) $
+    error "Expected 1 arg, API version number (actually .. podman version will also work) to fetch"
+  let schema_version = head args
+  schema <- fetch_schema schema_version
+  --schema <- fetch_local_schema "old-swagger-docs/swagger-v3.2.3.yaml"
+  --withFile "out.txt" WriteMode $ \hdl ->
+  --  T.hPutStrLn hdl $ snd $
+  T.putStrLn $ snd $
+        runWriter $ evalStateT (renderTypes schema_version (fixSchema schema)) $ Env 0
+
