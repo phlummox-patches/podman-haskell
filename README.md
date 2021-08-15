@@ -4,6 +4,10 @@
 
 A client library for [podman](https://podman.io)
 
+**NB:** This fork of <https://github.com/softwarefactory-project/podman-haskell>
+is experimental, and not known to actually work! If you want something that
+is maintained and tested, use the original.
+
 ## Overview and scope
 
 At a high level, the scope of podman-haskell is to provide a REST client for the podman API based on the swagger description.
