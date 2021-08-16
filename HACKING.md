@@ -46,7 +46,7 @@ Some options:
 
   and ensure `~/.local/bin` is on your PATH.
 
-  Let's suppose podman is being served on port 3001. To run a reverse proxy
+  Let's suppose podman is being served on port 3000. To run a reverse proxy
   on port 3001 (plus a web UI on port 8080), run
 
   ```
