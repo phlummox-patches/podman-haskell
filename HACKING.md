@@ -22,6 +22,30 @@ for examples of installing those tools and running the script.
 [swagger]: https://en.wikipedia.org/wiki/Swagger_(software)
 [gs-bucket]: https://storage.googleapis.com/libpod-master-releases/
 
+### Fixing up `podman-codegen`
+
+Sometimes you might be able to switch between versions of a Swagger file
+with no changes to `podman-codegen`, but more often, you'll need to
+update it to take account of changes.
+
+Note that the "smart constructors" like `mkSpecGenerator` have the
+number of arguments they take hard-coded (rather than getting this
+information from the Swagger specification) - fiddle with the
+numbers around [line 618][line-618] of the `renderCtor` function
+until the generated code compiles. (NB that *too many* arguments
+is a better error to have than too few, because `ghc` will tell
+you in its error messages how many arguments you *should* have had.)
+
+[line-618]: https://github.com/phlummox-patches/podman-haskell/blob/1a862e76622967b88af82e8530fb79c52fe841a8/podman-codegen/Codegen.hs#L618
+
+The Podman server implementation treats many arguments as optional,
+which means that we can just skip generating code for datatypes
+we find problematic for any reason. The [`skipTypes`][skiptypes]
+function handles that.
+
+[skiptypes]: https://github.com/phlummox-patches/podman-haskell/blob/1a862e76622967b88af82e8530fb79c52fe841a8/podman-codegen/Codegen.hs#L327
+
+
 ## Podman API documentation
 
 Podman's main API documentation page (generated from the same
