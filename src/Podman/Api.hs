@@ -1,6 +1,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 -- |
 -- Copyright: (c) 2021 Red Hat
@@ -73,12 +74,17 @@ module Podman.Api
     secretList,
     secretCreate,
     secretInspect,
+
+    -- * client API version
+    -- API version we prefix our URLs with
+    pattern API_VERSION ,
   )
 where
 
 import qualified Codec.Archive.Tar as Tar
 import Control.Monad ((>=>))
 import Control.Monad.IO.Class (MonadIO (..))
+
 import qualified Data.Binary.Get as B
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BS
@@ -86,17 +92,27 @@ import qualified Data.ByteString.Lazy as LBS
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Map (Map)
 import Data.Maybe (fromMaybe)
+import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+
 import Podman.Client
 import Podman.Internal
 import Podman.Types
+
 import Text.Read (readMaybe)
+
+pattern API_VERSION :: (Eq a, IsString a) => a
+pattern API_VERSION = "v2.0.0"
+
+api_base :: Text
+api_base = API_VERSION <> "/libpod"
+
 
 -- | Returns the Component Version information
 getVersion :: MonadIO m => PodmanClient -> m (Result Version)
-getVersion client = withResult <$> podmanGet client (Path "version") mempty
+getVersion client = withResult <$> podmanGet client (Path $ api_base <> "/version") mempty
 
 newtype ContainerName = ContainerName Text
   deriving stock (Show, Eq)
@@ -116,7 +132,7 @@ containerExists ::
   ContainerName ->
   m (Result Bool)
 containerExists client (ContainerName name) = do
-  notFoundToFalse . withoutResult <$> podmanGet client (Path ("v1/libpod/containers/" <> name <> "/exists")) mempty
+  notFoundToFalse . withoutResult <$> podmanGet client (Path (api_base <> "/containers/" <> name <> "/exists")) mempty
 
 -- | Return low-level information about a container.
 containerInspect ::
@@ -129,7 +145,7 @@ containerInspect ::
   Bool ->
   m (Result InspectContainerResponse)
 containerInspect client (ContainerName name) size =
-  withResult <$> podmanGet client (Path ("v1/libpod/containers/" <> name <> "/json")) [("size", Just (QBool size))]
+  withResult <$> podmanGet client (Path (api_base <> "/containers/" <> name <> "/json")) [("size", Just (QBool size))]
 
 -- | Returns a list of containers
 containerList ::
@@ -140,7 +156,7 @@ containerList ::
   ContainerListQuery ->
   m (Result [ListContainer])
 containerList client ContainerListQuery {..} = do
-  withResult <$> podmanGet client (Path "v1/libpod/containers/json") qs
+  withResult <$> podmanGet client (Path $ api_base <> "/containers/json") qs
   where
     qs =
       [ ("all", QBool <$> _containerListQueryall),
@@ -152,10 +168,10 @@ containerList client ContainerListQuery {..} = do
 
 -- | Create a container
 containerCreate :: MonadIO m => PodmanClient -> SpecGenerator -> m (Result ContainerCreateResponse)
-containerCreate client spec = withResult <$> podmanPost client (Json spec) (Path "v1/libpod/containers/create") mempty
+containerCreate client spec = withResult <$> podmanPost client (Json spec) (Path $ api_base <> "/containers/create") mempty
 
 containerPath :: ContainerName -> Text -> Path
-containerPath (ContainerName name) action = Path ("v1/libpod/containers/" <> name <> "/" <> action)
+containerPath (ContainerName name) action = Path (api_base <> "/containers/" <> name <> "/" <> action)
 
 data WaitCondition
   = Configured
@@ -200,7 +216,7 @@ containerStart ::
   Maybe Text ->
   m (Maybe Error)
 containerStart client (ContainerName name) escapeSeq =
-  withoutResult <$> podmanPost client emptyBody (Path $ "v1/libpod/containers/" <> name <> "/start") qs
+  withoutResult <$> podmanPost client emptyBody (Path $ api_base <> "/containers/" <> name <> "/start") qs
   where
     qs = [("detachKeys", QText <$> escapeSeq)]
 
@@ -219,7 +235,7 @@ containerSendFiles ::
   Maybe Bool ->
   m (Maybe Error)
 containerSendFiles client (ContainerName name) entries path pause =
-  withoutResult <$> podmanPut client (lazyRaw tar) (Path ("v1/libpod/containers/" <> name <> "/archive")) qs
+  withoutResult <$> podmanPut client (lazyRaw tar) (Path (api_base <> "/containers/" <> name <> "/archive")) qs
   where
     qs = [("path", Just $ QText path), ("pause", QBool <$> pause)]
     tar = Tar.write entries
@@ -235,7 +251,7 @@ containerGetFiles ::
   Text ->
   m (Result (Tar.Entries Tar.FormatError))
 containerGetFiles client (ContainerName name) path = do
-  res <- withRaw <$> podmanGet client (Path ("v1/libpod/containers/" <> name <> "/archive")) qs
+  res <- withRaw <$> podmanGet client (Path (api_base <> "/containers/" <> name <> "/archive")) qs
   pure $ case res of
     Left err -> Left err
     Right bs -> Right (Tar.read $ LBS.fromStrict bs)
@@ -253,7 +269,7 @@ containerKill ::
   Maybe Text ->
   m (Maybe Error)
 containerKill client (ContainerName name) signal =
-  withoutResult <$> podmanPost client emptyBody (Path ("v1/libpod/containers/" <> name <> "/kill")) qs
+  withoutResult <$> podmanPost client emptyBody (Path (api_base <> "/containers/" <> name <> "/kill")) qs
   where
     qs = [("signal", QText <$> signal)]
 
@@ -266,7 +282,7 @@ containerMount ::
   ContainerName ->
   m (Either Error FilePath)
 containerMount client (ContainerName name) =
-  toFilePath . withRaw <$> podmanPost client emptyBody (Path ("v1/libpod/containers/" <> name <> "/mount")) mempty
+  toFilePath . withRaw <$> podmanPost client emptyBody (Path $ api_base <> "/containers/" <> name <> "/mount") mempty
   where
     -- Uses T.init to drop the \n suffix of the response
     -- TODO: reports the mismatch in the swagger example
@@ -274,7 +290,7 @@ containerMount client (ContainerName name) =
 
 containerPost_ :: MonadIO m => Text -> QueryArgs -> PodmanClient -> ContainerName -> m (Maybe Error)
 containerPost_ path qs client (ContainerName name) =
-  withoutResult <$> podmanPost client emptyBody (Path ("v1/libpod/containers/" <> name <> "/" <> path)) qs
+  withoutResult <$> podmanPost client emptyBody (Path $ api_base <> "/containers/" <> name <> "/" <> path) qs
 
 -- | Use the cgroups freezer to suspend all processes in a container.
 containerPause ::
@@ -334,7 +350,7 @@ containerDelete ::
   Maybe Bool ->
   m (Maybe Error)
 containerDelete client (ContainerName name) force volume =
-  withoutResult <$> podmanDelete client (Path ("v1/libpod/containers/" <> name)) qs
+  withoutResult <$> podmanDelete client (Path $ api_base <> "/containers/" <> name) qs
   where
     qs = [("force", QBool <$> force), ("v", QBool <$> volume)]
 
@@ -384,7 +400,7 @@ containerAttach ::
   (ContainerConnection -> IO a) ->
   m (Result a)
 containerAttach client (ContainerName name) AttachQuery {..} cb = do
-  podmanConn client "POST" (Path ("v1/libpod/containers/" <> name <> "/attach")) qs (cc >=> cb)
+  podmanConn client "POST" (Path $ api_base <> "/containers/" <> name <> "/attach") qs (cc >=> cb)
   where
     cc :: Connection -> IO ContainerConnection
     cc conn = do
@@ -422,7 +438,7 @@ containerChanges ::
   ContainerName ->
   m (Result [ContainerChange])
 containerChanges client (ContainerName name) =
-  withResult <$> podmanGet client (Path ("v1/libpod/containers/" <> name <> "/changes")) mempty
+  withResult <$> podmanGet client (Path $ api_base <> "/containers/" <> name <> "/changes") mempty
 
 -- | Export the contents of a container as a tarball.
 containerExport ::
@@ -433,7 +449,7 @@ containerExport ::
   ContainerName ->
   m (Result (Tar.Entries Tar.FormatError))
 containerExport client (ContainerName name) = do
-  res <- withRaw <$> podmanGet client (Path ("v1/libpod/containers/" <> name <> "/export")) mempty
+  res <- withRaw <$> podmanGet client (Path $ api_base <> "/containers/" <> name <> "/export") mempty
   pure $ case res of
     Left err -> Left err
     Right bs -> Right (Tar.read $ LBS.fromStrict bs)
@@ -455,7 +471,7 @@ containerLogs ::
   (ContainerOutput -> IO ()) ->
   m (Maybe Error)
 containerLogs client (ContainerName name) streams LogsQuery {..} cb = do
-  x <- podmanStream client "GET" (Path ("v1/libpod/containers/" <> name <> "/logs")) qs (cc "")
+  x <- podmanStream client "GET" (Path $ api_base <> "/containers/" <> name <> "/logs") qs (cc "")
   pure $ case x of
     Left err -> Just err
     Right _ -> Nothing
@@ -496,7 +512,7 @@ containerInitialize ::
   ContainerName ->
   m (Maybe Error)
 containerInitialize client (ContainerName name) =
-  withoutResult <$> podmanPost client emptyBody (Path ("v1/libpod/containers/" <> name <> "/init")) mempty
+  withoutResult <$> podmanPost client emptyBody (Path $ api_base <> "/containers/" <> name <> "/init") mempty
 
 -- | Generate a Kubernetes YAML file.
 generateKubeYAML ::
@@ -509,7 +525,7 @@ generateKubeYAML ::
   Bool ->
   m (Result Text)
 generateKubeYAML client names service =
-  withText <$> podmanGet client (Path "v1/libpod/generate/kube") qs
+  withText <$> podmanGet client (Path $ api_base <> "/generate/kube") qs
   where
     qs =
       map (\(ContainerName name) -> ("names", Just (QText name))) names
@@ -526,7 +542,7 @@ generateSystemd ::
   GenerateSystemdQuery ->
   m (Result (Map Text Text))
 generateSystemd client (ContainerName name) GenerateSystemdQuery {..} =
-  withResult <$> podmanGet client (Path $ "v1/libpod/generate/" <> name <> "/systemd") qs
+  withResult <$> podmanGet client (Path $ api_base <> "/generate/" <> name <> "/systemd") qs
   where
     qs =
       [ ("useName", QBool <$> _generateSystemdQueryuseName),
@@ -551,7 +567,7 @@ imageList ::
   ImageListQuery ->
   m (Result [ImageSummary])
 imageList client ImageListQuery {..} =
-  withResult <$> podmanGet client (Path "v1/libpod/images/json") qs
+  withResult <$> podmanGet client (Path $ api_base <> "/images/json") qs
   where
     qs = [("all", QBool <$> _imageListQueryall), ("filters", QText <$> _imageListQueryfilters)]
 
@@ -564,7 +580,7 @@ imageExists ::
   ImageName ->
   m (Result Bool)
 imageExists client (ImageName name) = do
-  notFoundToFalse . withoutResult <$> podmanGet client (Path ("v1/libpod/images/" <> name <> "/exists")) mempty
+  notFoundToFalse . withoutResult <$> podmanGet client (Path $ api_base <> "/images/" <> name <> "/exists") mempty
 
 -- | Retrieve the image tree for the provided image name or ID
 imageTree ::
@@ -577,7 +593,7 @@ imageTree ::
   Maybe Bool ->
   m (Result ImageTreeResponse)
 imageTree client (ImageName name) whatrequires =
-  withResult <$> podmanGet client (Path ("v1/libpod/images/" <> name <> "/tree")) qs
+  withResult <$> podmanGet client (Path $ api_base <> "/images/" <> name <> "/tree") qs
   where
     qs = [("whatrequires", QBool <$> whatrequires)]
 
@@ -605,7 +621,7 @@ imagePullRaw ::
   ImagePullQuery ->
   m (Result ImagesPullResponse)
 imagePullRaw client ImagePullQuery {..} = do
-  r <- withRaw <$> podmanPost client emptyBody (Path "v1/libpod/images/pull") qs
+  r <- withRaw <$> podmanPost client emptyBody (Path $ api_base <> "/images/pull") qs
   pure $ case r of
     Right bs -> case decodeImagePullResponse bs of
       Left x -> error x
@@ -634,7 +650,7 @@ networkList ::
   Maybe Text ->
   m (Result [NetworkListReport])
 networkList client filters =
-  withResult <$> podmanGet client (Path "v1/libpod/networks/json") qs
+  withResult <$> podmanGet client (Path $ api_base <> "/networks/json") qs
   where
     qs = [("filters", QText <$> filters)]
 
@@ -648,7 +664,7 @@ networkExists ::
   -- | Returns Nothing when the network exists
   m (Maybe Error)
 networkExists client (NetworkName name) =
-  withoutResult <$> podmanGet client (Path ("v1/libpod/networks/" <> name <> "/exists")) mempty
+  withoutResult <$> podmanGet client (Path $ api_base <> "/networks/" <> name <> "/exists") mempty
 
 newtype VolumeName = VolumeName Text
   deriving stock (Show, Eq)
@@ -662,7 +678,7 @@ volumeList ::
   Maybe Text ->
   m (Result [Volume])
 volumeList client filters =
-  withResult <$> podmanGet client (Path "v1/libpod/volumes/json") qs
+  withResult <$> podmanGet client (Path $ api_base <> "/volumes/json") qs
   where
     qs = [("filters", QText <$> filters)]
 
@@ -676,7 +692,7 @@ volumeExists ::
   -- | Returns Nothing when the volume exists
   m (Maybe Error)
 volumeExists client (VolumeName name) =
-  withoutResult <$> podmanGet client (Path ("v1/libpod/volumes/" <> name <> "/exists")) mempty
+  withoutResult <$> podmanGet client (Path $ api_base <> "/volumes/" <> name <> "/exists") mempty
 
 -- | Create an exec instance
 execCreate ::
@@ -690,7 +706,7 @@ execCreate ::
   m (Result ExecId)
 execCreate client (ContainerName name) config =
   (fmap . fmap $ getId) withResult
-    <$> podmanPost client (Json config) (Path ("v1/libpod/containers/" <> name <> "/exec")) mempty
+    <$> podmanPost client (Json config) (Path $ api_base <> "/containers/" <> name <> "/exec") mempty
   where
     getId (ExecResponse id') = ExecId id'
 
@@ -706,7 +722,7 @@ execInspect ::
   ExecId ->
   m (Result ExecInspectResponse)
 execInspect client (ExecId name) =
-  withResult <$> podmanGet client (Path ("v1/libpod/exec/" <> name <> "/json")) mempty
+  withResult <$> podmanGet client (Path $ api_base <> "/exec/" <> name <> "/json") mempty
 
 -- | Start an exec instance
 execStart ::
@@ -717,7 +733,7 @@ execStart ::
   ExecId ->
   m (Result [ContainerOutput])
 execStart client (ExecId name) = do
-  fmap toOutput . withRaw <$> podmanPost client emptyObject (Path ("v1/libpod/exec/" <> name <> "/start")) mempty
+  fmap toOutput . withRaw <$> podmanPost client emptyObject (Path $ api_base <> "/exec/" <> name <> "/start") mempty
   where
     toOutput = B.runGet getContainerOutputs . LBS.fromStrict
 
@@ -731,7 +747,7 @@ secretList ::
   PodmanClient ->
   m (Result [SecretInfoReport])
 secretList client =
-  withResult <$> podmanGet client (Path "v1/libpod/secrets/json") mempty
+  withResult <$> podmanGet client (Path $ api_base <> "/secrets/json") mempty
 
 secretCreate ::
   MonadIO m =>
@@ -743,7 +759,7 @@ secretCreate ::
   ByteString ->
   m (Result SecretCreateResponse)
 secretCreate client (SecretName name) dat =
-  withResult <$> podmanPost client (raw dat) (Path "v1/libpod/secrets/create") qs
+  withResult <$> podmanPost client (raw dat) (Path $ api_base <> "/secrets/create") qs
   where
     qs = [("name", Just (QText name))]
 
@@ -756,4 +772,5 @@ secretInspect ::
   SecretName ->
   m (Result SecretInfoReport)
 secretInspect client (SecretName name) =
-  withResult <$> podmanGet client (Path ("v1/libpod/secrets/" <> name <> "/json")) mempty
+  withResult <$> podmanGet client (Path $ api_base <> "/secrets/" <> name <> "/json") mempty
+
