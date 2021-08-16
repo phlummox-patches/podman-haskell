@@ -9,6 +9,8 @@ A client library for [podman](https://podman.io)
 is experimental, and not known to actually work! If you want something that
 is maintained and tested, use the original.
 
+For development tips, see [HACKING.md](HACKING.md).
+
 ## Overview and scope
 
 At a high level, the scope of podman-haskell is to provide a REST client for
