@@ -28,7 +28,7 @@ getStub paths = sequence (contentType, LBS.readFile path)
   where
     basePath = "./test/data/" <> intercalate "/" (map T.unpack paths)
     (contentType, path) = case paths of
-      ["v1", "libpod", "images", "pull"] -> ("text/raw", basePath <> ".raw")
+      ["v2.0.0", "libpod", "images", "pull"] -> ("text/raw", basePath <> ".raw")
       _ -> ("application/json", basePath <> ".json")
 
 -- | A fake api serving stub response
@@ -98,7 +98,7 @@ encodingTests =
     ]
   where
     decodeFp fp check = testCase ("Test " <> fp) $ do
-      objm <- decodeFileStrict ("./test/data/" <> fp <> ".json")
+      objm <- decodeFileStrict ("./test/data/v2.0.0/libpod/" <> fp <> ".json")
       assertBool (fp <> ".json is decoded") (check objm)
     isVersion :: Maybe Podman.Version -> Bool
     isVersion = isJust

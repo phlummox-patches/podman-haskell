@@ -21,7 +21,9 @@ category:            System
 build-type:          Simple
 extra-doc-files:     CHANGELOG.md
                      README.md
-extra-source-files:  test/data/version.json test/data/v1/libpod/images/pull.raw
+extra-source-files:  test/data/v2.0.0/libpod/images/pull.raw
+                     test/data/v2.0.0/libpod/version.json
+
 tested-with:         GHC == 8.10.3
 
 source-repository head
