@@ -31,10 +31,10 @@ import            Data.Swagger.Lens -- (paramSchema)
 import            Data.Text (Text)
 import qualified  Data.Text as T
 import qualified  Data.Text.IO as T
+
 import            Data.Version (showVersion)
 import qualified  Data.Yaml as Y
 
---import            Debug.Trace (trace)
 import            GHC.Generics (Generic)
 import            Lens.Micro
 import qualified  Network.Wreq as W
@@ -62,14 +62,12 @@ type Name = Text
 -- Workarounds
 -------------------------------------------------------------------------------
 
--- | The list of type to generate binding
-defTypes, defSmartCtor, responseTypes, extraTypes :: [TypeName]
 
 -- | Definitions
+defTypes :: [TypeName]
 defTypes =
   [ "Error",
     "Version",
-    -- "Duration",
     "Health",
     "HealthConfig",
     "HealthcheckResult",
@@ -129,11 +127,14 @@ defTypes =
   ]
 
 -- | Responses
+responseTypes :: [TypeName]
 responseTypes = ["LibpodInspectContainerResponse", "ContainerCreateResponse"]
 
 -- | Provided data types
+extraTypes :: [TypeName]
 extraTypes = ["LinuxCapability", "SystemdRestartPolicy", "ExecResponse", "SecretCreateResponse", "ContainerChangeKind", "ContainerStatus"]
 
+makeLensesFor :: [TypeName]
 makeLensesFor = [
     "AttachQuery"
   , "ContainerChange"
@@ -181,26 +182,27 @@ makeLensesFor = [
   ]
 
 -- | Smart constructors
+defSmartCtor :: [TypeName]
 defSmartCtor = ["SpecGenerator", "ExecConfig", "ImagePullQuery"]
 
 -- | Provided new types
 newTypes :: [(TypeName, Text)]
 newTypes = [
-            ("IP", "[Word8]")
-          , ("Signal", "Int64")
-          , ("FileMode", "Word32")
-          , ("Duration", "Int64")
+            ("IP",        "[Word8]")
+          , ("Signal",    "Int64")
+          , ("FileMode",  "Word32")
+          , ("Duration",  "Int64")
           ]
 
 -- | In query data types
 queryTypes :: [(Text, Name, PathItem -> Maybe Operation)]
 queryTypes =
-  [ ("/libpod/containers/json", "ContainerListQuery", _pathItemGet),
-    ("/libpod/generate/{name}/systemd", "GenerateSystemdQuery", _pathItemGet),
-    ("/images/json", "ImageListQuery", _pathItemGet),
-    ("/libpod/containers/{name}/attach", "AttachQuery", _pathItemPost),
-    ("/libpod/containers/{name}/logs", "LogsQuery", _pathItemGet),
-    ("/libpod/images/pull", "ImagePullQuery", _pathItemPost)
+  [ ("/libpod/containers/json",           "ContainerListQuery",   _pathItemGet),
+    ("/libpod/generate/{name}/systemd",   "GenerateSystemdQuery", _pathItemGet),
+    ("/images/json",                      "ImageListQuery",       _pathItemGet),
+    ("/libpod/containers/{name}/attach",  "AttachQuery",          _pathItemPost),
+    ("/libpod/containers/{name}/logs",    "LogsQuery",            _pathItemGet),
+    ("/libpod/images/pull",               "ImagePullQuery",       _pathItemPost)
   ]
 
 -- | In body data types
@@ -212,17 +214,17 @@ bodyTypes =
 
 -- | Convert swagger name
 adaptName :: TypeName -> TypeName
-adaptName "LibpodInspectContainerResponse" = "InspectContainerResponse"
-adaptName "LibpodImageTreeResponse" = "ImageTreeResponse"
-adaptName "LibpodImagesPullReport" = "ImagesPullResponse"
-adaptName "DNS" = "Dns"
-adaptName x = x
+adaptName "LibpodInspectContainerResponse"  = "InspectContainerResponse"
+adaptName "LibpodImageTreeResponse"         = "ImageTreeResponse"
+adaptName "LibpodImagesPullReport"          = "ImagesPullResponse"
+adaptName "DNS"                             = "Dns"
+adaptName x                                 = x
 
 -- | Provide missing docs
 hardcodedDoc :: TypeName -> Maybe Text
-hardcodedDoc "Error" = Just "The API error record"
-hardcodedDoc "Version" = Just "The API Version information"
-hardcodedDoc _ = Nothing
+hardcodedDoc "Error"    = Just "The API error record"
+hardcodedDoc "Version"  = Just "The API Version information"
+hardcodedDoc _          = Nothing
 
 -- | Fix-up attribute types
 hardcodedTypes :: TypeName -> AttrName -> Maybe Text
@@ -250,7 +252,7 @@ hardcodedTypes "generateSystemdQuery" "restartPolicy" =
   -- Use the provided SystemdRestartPolicy type
   Just "SystemdRestartPolicy"
 hardcodedTypes "inspectContainerState" "Status" =
-  -- USe the provided type
+  -- Use the provided type
   Just "ContainerStatus"
 -- TODO: report better type
 hardcodedTypes "logsQuery" "since" = Just "UTCTime"
@@ -353,13 +355,15 @@ skipTypes _ n =
            ]
 
 -- | Create missing types
-data Error = Error {cause :: Text, message :: Text, response :: Int} deriving stock (Generic)
+data Error = Error {cause :: Text, message :: Text, response :: Int}
+  deriving stock (Generic)
 
 instance ToJSON Error
 
 instance ToSchema Error
 
-data Version = Version {_ApiVersion :: Text, _Version :: Text} deriving stock (Generic)
+data Version = Version {_ApiVersion :: Text, _Version :: Text}
+  deriving stock (Generic)
 
 instance ToJSON Version
 
@@ -641,7 +645,7 @@ getSchema (Just (Inline a)) = a
 getSchema _ = error "bad schema"
 
 -- | Build the Types.hs file
-renderTypes :: String -> Swagger -> StateT Env (Writer Text) ()
+renderTypes :: String -> Swagger -> Builder ()
 renderTypes schema_version sw@Swagger{..} = go
   where
     allTypes = map fst newTypes <> defTypes <> responseTypes
@@ -656,8 +660,7 @@ renderTypes schema_version sw@Swagger{..} = go
       line "\n{- |\n"
       line $ T.pack $ "generated by podman-codegen version " <> codegen_version <> "\n"
       line $ "From a swagger file documenting podman API version " <> reported_schema_version <> "\n"
-      line $ T.pack $ "which was fetched from <" <> schema_url schema_version <> "\n"
-              <> ">"
+      line $ T.pack $ "which was fetched from <" <> schema_url schema_version <> ">" <> "\n"
       line "-}\n"
 
 
@@ -672,6 +675,7 @@ renderTypes schema_version sw@Swagger{..} = go
             ]
       forM_ extensions $ \ext ->
         line $ "{-# LANGUAGE " <> ext <> " #-}"
+
       line ""
       line "module Podman.Types"
       line "  ("
@@ -840,7 +844,7 @@ fetch_schema schema_version = do
       Right r  -> return r
 
 fetch_local_schema :: FilePath -> IO Swagger
-fetch_local_schema schema_path = do
+fetch_local_schema schema_path =
     Y.decodeFileThrow schema_path
 
 

@@ -15,6 +15,7 @@ executable podman-codegen
                        -Wincomplete-record-updates
                        -Wredundant-constraints
                        -Wunused-imports
+                       -Wno-name-shadowing
   if impl(ghc >= 8.2)
     ghc-options:       -fhide-source-paths
   if impl(ghc >= 8.4)
@@ -37,3 +38,4 @@ executable podman-codegen
                      , wreq
                      , yaml
   main-is:             Codegen.hs
+  other-modules:       Paths_podman_codegen
