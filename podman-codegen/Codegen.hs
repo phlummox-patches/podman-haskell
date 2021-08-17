@@ -853,10 +853,8 @@ main = do
   unless (length args == 1) $
     error "Expected 1 arg, API version number (actually .. podman version will also work) to fetch"
   let schema_version = head args
-  schema <- fetch_schema schema_version
-  --schema <- fetch_local_schema "old-swagger-docs/swagger-v3.2.3.yaml"
-  --withFile "out.txt" WriteMode $ \hdl ->
-  --  T.hPutStrLn hdl $ snd $
+  --schema <- fetch_schema schema_version
+  schema <- fetch_local_schema "old-swagger-docs/swagger-v3.2.3.yaml"
   T.putStrLn $ snd $
         runWriter $ evalStateT (renderTypes schema_version (fixSchema schema)) $ Env 0
 
