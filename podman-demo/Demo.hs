@@ -1,7 +1,55 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
--- | A demo program
+{- |
+
+A demo program.
+
+Assume we're running bash, and have the following setup (for the sake
+of example):
+
+@
+alias mypod="podman-remote --url tcp://localhost:3000/"
+img=alpine:3.12.0
+ctr=my-ctr
+@
+
+Then the demo program is roughly equivalent to running the following Bash
+commands (see the 'demo' function):
+
+@
+mypod version
+
+if ! mypod image exists $img ; then
+  mypod pull $img
+fi
+
+mypod image tree $img
+
+if ! mypod container exists $ctr; then
+  mypod container create --name $ctr -i -t $img
+fi
+
+mypod container inspect $ctr
+mypod container start $ctr
+mypod container wait --condition=running $ctr
+mypod container attach $ctr
+mypod exec $ctr cat /etc/os-release
+fi
+
+echo test-data > test.dat
+mypod cp test.dat $ctr:/tmp/test-send
+mypod cp $ctr:/tmp/test-send test.dat
+
+mypod logs $ctr
+mypod kill $ctr
+mypod container wait --condition=exited $ctr
+mypod rm $ctr
+@
+
+-}
+
+
 module Main (main) where
 
 import qualified Codec.Archive.Tar as Tar
