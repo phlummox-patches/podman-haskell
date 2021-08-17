@@ -15,6 +15,10 @@ jobs:
 
     runs-on: ubuntu-18.04
     env:
+      # NB: need stack <2 or >2.3 for fixed relative Haddock paths:
+      # changelog (https://hackage.haskell.org/package/stack-2.3.1/changelog)
+      # notes the following bug fix:
+      #  https://github.com/commercialhaskell/stack/issues/4971
       STACK_VERSION: "2.3.1"
       STACK_RESOLVER: "lts-13.30"
 
@@ -82,23 +86,9 @@ jobs:
 
           set +ex
 
-      - name: store build artifacts
-        uses: actions/upload-artifact@v2
+      - name: deploy to github pages
+        uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
-          name: doc
-          path: |
-            doc
-
-      - name: store build artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: stack-work
-          path: |
-            .stack-work
-
-      #- name: deploy to github pages
-      #  uses: JamesIves/github-pages-deploy-action@4.1.4
-      #  with:
-      #    branch: gh-pages
-      #    folder: doc
+          branch: gh-pages
+          folder: doc
 
