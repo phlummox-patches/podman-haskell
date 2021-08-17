@@ -76,9 +76,15 @@ jobs:
             exit 1
           fi
           stack build  --test --no-run-tests
-          stack haddock
+          stack haddock podman:lib
+
+          cp -r $(stack path --local-doc-root) doc
 
           set +ex
 
-
+      - name: deploy to github pages
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: gh-pages
+          folder: doc
 
