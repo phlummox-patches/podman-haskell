@@ -209,3 +209,39 @@ jobs:
 
           set +ex
 
+      - name: run demo using ${{ matrix.builder }} on ${{matrix.os}}
+        run: |
+          set -ex
+
+          docker pull phlummox/alpine-podman
+          docker -D run --rm --privileged --net=host --detach \
+            phlummox/alpine-podman \
+              podman --log-level=debug system service --time=0 tcp:0.0.0.0:3000
+
+          sleep 2
+
+
+          case ${{ matrix.builder }} in
+            cabal*)
+              cabal new-run podman-demo -- http://localhost:3000/ alpine:3.12.0 my-ctr
+            ;;
+            stack*)
+              # build project with stack
+              STACK_RESOLVER="$(echo ${{ matrix.builder }} | sed 's/^stack-//')"
+              # get appropriate stack.yaml
+              if [ -f "stack-${STACK_RESOLVER}.yaml" ] ; then
+                cp "stack-${STACK_RESOLVER}.yaml" stack.yaml
+              else
+                printf >&2 "not a good idea. custom stack.yaml needed for this repo"
+                exit 1
+              fi
+              stack exec podman-demo -- http://localhost:3000/ alpine:3.12.0 my-ctr
+            ;;
+            *)
+              echo unknown build tool!!
+              exit 1
+            ;;
+          esac
+
+
+
