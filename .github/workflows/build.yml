@@ -235,7 +235,7 @@ jobs:
                 printf >&2 "not a good idea. custom stack.yaml needed for this repo"
                 exit 1
               fi
-              stack exec podman -- http://localhost:3000/ alpine:3.12.0 my-ctr
+              stack exec podman-demo -- http://localhost:3000/ alpine:3.12.0 my-ctr
             ;;
             *)
               echo unknown build tool!!
