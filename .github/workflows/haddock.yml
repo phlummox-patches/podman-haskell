@@ -82,9 +82,23 @@ jobs:
 
           set +ex
 
-      - name: deploy to github pages
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+      - name: store build artifacts
+        uses: actions/upload-artifact@v2
         with:
-          branch: gh-pages
-          folder: doc
+          name: doc
+          path: |
+            doc
+
+      - name: store build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: stack-work
+          path: |
+            .stack-work
+
+      #- name: deploy to github pages
+      #  uses: JamesIves/github-pages-deploy-action@4.1.4
+      #  with:
+      #    branch: gh-pages
+      #    folder: doc
 
