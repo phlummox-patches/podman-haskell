@@ -6,8 +6,9 @@
 A client library for [podman](https://podman.io)
 
 **NB:** This fork of <https://github.com/softwarefactory-project/podman-haskell>
-is experimental, and not known to actually work! If you want something that
-is maintained and tested, use the original.
+is experimental! (Although it has been tested somewhat against the Alpine build
+of podman 3.2.3. See the GitHub actions [workflow file](.github/workflows/build.yml).)
+If you want something that is maintained and tested, use the original.
 
 For development tips, see [HACKING.md](HACKING.md).
 
