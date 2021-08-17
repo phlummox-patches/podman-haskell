@@ -102,7 +102,8 @@ ensureContainer client (ImageName iname) containerName@(ContainerName cname) = d
           client
           ( (mkSpecGenerator iname)
               { _specGeneratorname = Just cname,
-                _specGeneratorstdin = Just True
+                _specGeneratorstdin = Just True,
+                _specGeneratorterminal = Just True
               }
           )
       case res of
