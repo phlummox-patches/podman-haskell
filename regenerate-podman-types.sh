@@ -22,7 +22,7 @@ stack build \
   podman-codegen:exe:podman-codegen
 
 ./binaries/podman-codegen $PODMAN_VERSION \
-    | ormolu > src/Podman/Types.hs 
+    | ormolu --start-line 7 > src/Podman/Types.hs
 
 hlint --refactor --refactor-options=-i src/Podman/Types.hs
 
