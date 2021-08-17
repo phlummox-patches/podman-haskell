@@ -49,7 +49,7 @@ fakeServer sem sktPath = do
       S.listen s 42
       pure s
     settings =
-      Warp.setPort 3000 $
+      Warp.setPort 3999 $
         Warp.setBeforeMainLoop (QSem.signalQSem sem) Warp.defaultSettings
 
 main :: IO ()
