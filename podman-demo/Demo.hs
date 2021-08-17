@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- | A demo program
 module Main (main) where
@@ -52,7 +53,8 @@ showImage client iname = do
     Right x -> ok "image tree" x
 
 -- | Ensure a container is running
-ensureContainer :: MonadIO m => PodmanClient -> ImageName -> ContainerName -> m ()
+ensureContainer :: forall m . MonadIO m =>
+    PodmanClient -> ImageName -> ContainerName -> m ()
 ensureContainer client (ImageName iname) containerName@(ContainerName cname) = do
   trace "containerExists" cname
   existsError <- containerExists client containerName
@@ -63,7 +65,7 @@ ensureContainer client (ImageName iname) containerName@(ContainerName cname) = d
   trace "containerInspect" cname
   inspect <- containerInspect client containerName False
   case inspect of
-    Left err -> abort "containerInpsect" err
+    Left err -> abort "containerInspect" err
     Right x
       | _inspectContainerStateRunning (_inspectContainerResponseState x) -> ok "container running" x
       | otherwise -> ok "container not running" x >> startContainer
@@ -73,12 +75,16 @@ ensureContainer client (ImageName iname) containerName@(ContainerName cname) = d
     Left err -> abort "containerWait" err
     Right x -> ok "container is running" x
   where
+
+    startContainer :: m ()
     startContainer = do
       trace "containerStart" cname
       res <- containerStart client containerName Nothing
       case res of
         Nothing -> ok "container started" True
         Just err -> abort "containerStart" err
+
+    createContainer :: m ()
     createContainer = do
       trace "containerCreate" cname
       res <-
@@ -179,24 +185,25 @@ demo imageName containerName client = do
 interactiveAttach :: MonadIO m => PodmanClient -> ContainerName -> m ()
 interactiveAttach client name = do
   trace "containerAttach" name
-  liftIO . print
-    =<< containerAttach
-      client
-      name
-      ( defaultAttachQuery
-          { _attachQuerystderr = Just True,
-            _attachQuerystdout = Just True,
-            _attachQuerystdin = Just True
-          }
-      )
-      go
+  liftIO $ do
+    let attQ = defaultAttachQuery
+                  { _attachQuerystderr = Just True,
+                    _attachQuerystdout = Just True,
+                    _attachQuerystdin = Just True
+                  }
+    res <- containerAttach client name attQ go
+    trace "attach finished" res
   where
+
+    go :: ContainerConnection -> IO ()
     go conn = do
       ok "attached, press \"exit\" to quit" ()
       a1 <- async $ writer conn
       a2 <- async $ reader conn
       (_, res) <- waitAnyCancel [a1, a2]
       pure res
+
+    writer :: ContainerConnection -> IO ()
     writer conn = do
       putStr "> "
       hFlush stdout
@@ -207,6 +214,8 @@ interactiveAttach client name = do
           print ("Sending" <> show x)
           containerSend conn x
           writer conn
+
+    reader :: ContainerConnection -> IO ()
     reader conn = do
       dat <- containerRecv conn
       print dat
@@ -250,12 +259,14 @@ shell client = do
     demoName' = "demo-haskell"
     demoName = ContainerName demoName'
 
+
+
 -- | CLI entrypoint
 main :: IO ()
 main = do
   args <- getArgs
   case map T.pack args of
-    [url, image, container] -> withClient url (demo (ImageName image) (ContainerName container))
+    [url, image, container] -> withClient url $  demo (ImageName image) (ContainerName container)
     [url, "shell"] -> withClient url shell
     [url, container] -> withClient url (\client -> tailContainer client (ContainerName container) True)
     _ -> putStrLn "usage: podman-demo url image-name container-name"
