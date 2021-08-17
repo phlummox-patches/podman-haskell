@@ -1,6 +1,6 @@
 cabal-version:       1.12
 name:                podman
-version:             0.1.0.0
+version:             3.2.3.0
 synopsis:            A podman remote client library
 description:
     Podman is a client library to interface with <https://podman.io/ podman>.
@@ -10,6 +10,8 @@ description:
     @podman@ is designed to be beginner-friendly. For compat API, use the
     <https://hackage.haskell.org/package/docker docker> client instead.
     .
+    Versioning: first 3 components of version are a Podman
+    version number; the last are patches.
 homepage:            https://github.com/softwarefactory-project/podman-haskell#readme
 bug-reports:         https://github.com/softwarefactory-project/podman-haskell/issues
 license:             Apache-2.0
