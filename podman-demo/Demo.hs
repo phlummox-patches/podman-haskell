@@ -122,6 +122,10 @@ killContainer client name = do
   case res of
     Just err -> abort "containerKill" err
     Nothing -> ok "container killed" ()
+  wait <- containerWait client name Exited
+  case wait of
+    Left err -> abort "containerWait" err
+    Right x -> ok "container has exited" x
   trace "containerDelete" name
   res' <- containerDelete client name Nothing Nothing
   case res' of
