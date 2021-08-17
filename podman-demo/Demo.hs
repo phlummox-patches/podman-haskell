@@ -288,8 +288,30 @@ main = do
                                     ctr = ContainerName container
                                 in  demo isInteractive img ctr
     [url, "shell"] -> withClient url shell
-    [url, container] -> withClient url (\client -> tailContainer client (ContainerName container) True)
-    _ -> putStrLn "usage: podman-demo url image-name container-name"
+    [url, container] -> withClient url $ \client ->
+                          tailContainer client (ContainerName container) True
+    _ -> putStrLn $ unlines [
+            "usage: podman-demo [--interactive] URL IMAGE_NAME CONTAINER_NAME"
+          , ""
+          , "URL specifies some HTTP endpoint to connect to. e.g. 'http://localhost:3000/',"
+          , "or 'http+unix://tmp/podman.sock'."
+          , ""
+          , "IMAGE_NAME is an image which will be pulled (if necessary) and used to"
+          , "create a demo container. e.g. 'alpine:3.12.0'."
+          , ""
+          , "(In fact Alpine is probably a good choice of container, because it's"
+          , "small, and has all the files this demo program expects to see.)"
+          , ""
+          , "CONTAINER_NAME is a name for a container which will be used for the demo"
+          , "(and created, if necessary). e.g. 'foo', 'my-container'."
+          , ""
+          , "If you specify --interactive, the demo will include attaching"
+          , "to the launched container."
+          , ""
+          , "other usages: see the source code."
+          , "'podman-demo URL shell' and 'podman-demo CONTAINER_NAME' are also allowable"
+          , "invocations."
+          ]
 
 -- Some helper functions
 trace' :: (Show a, MonadIO m) => Text -> Text -> a -> m ()
