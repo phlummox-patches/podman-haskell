@@ -39,7 +39,7 @@ import            GHC.Generics (Generic)
 import            Lens.Micro
 import qualified  Network.Wreq as W
 import qualified  Paths_podman_codegen as Paths (version)
-import            System.IO
+
 import            System.Environment
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
@@ -303,6 +303,8 @@ isOptional "inspectContainerConfig" = \case
   "SystemdMode" -> True
   "OnBuild" -> True
   "CreateCommand" -> True
+  "Labels" -> True
+  "Secrets" -> True
   _ -> False
 isOptional "imageTreeResponse" = \case
   "layers" -> True
@@ -330,7 +332,7 @@ skipTypes :: TypeName -> AttrName -> Bool
 skipTypes "netConf" "ipam" = True
 skipTypes "containerListQuery" "pod" = True
 skipTypes "imageListQuery" "digests" = True
---skipTypes _ "Healthcheck" = True
+skipTypes _ "Healthcheck" = True
 skipTypes "inspectContainerConfig" "Volumes" = True
 skipTypes "inspectContainerConfig" "Timezone" = True
 -- compat value
@@ -342,16 +344,13 @@ skipTypes "logsQuery" n
 skipTypes _ n =
   n
     `elem` [
-             -- "Secrets",
              "Mounts",
              "HostConfig",
              "NetworkSettings",
              "GraphDriver",
-             "static_mac" ,
-           --"healthconfig",
-           "idmappings" --,
-           -- "r_limits",
-           -- "resource_limits"
+             "static_mac",
+             "healthconfig",
+             "idmappings"
            ]
 
 -- | Create missing types
@@ -619,7 +618,7 @@ renderCtor name _ =
   where
     -- TODO: generate that list from the schema
     (pre, after, xs) = case name of
-      "SpecGenerator" -> (13, 79, [("image", "Text")])
+      "SpecGenerator" -> (13, 78, [("image", "Text")])
       "ExecConfig" -> (5, 4, [("cmd", "[Text]")])
       "ImagePullQuery" -> (0, 7, [("reference", "Text")])
       _ -> error ("Unknown ctor: " <> T.unpack name)
