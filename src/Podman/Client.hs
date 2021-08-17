@@ -42,6 +42,7 @@ module Podman.Client
 where
 
 import Control.Monad.IO.Class (MonadIO (..))
+
 import Data.Aeson (FromJSON, ToJSON, Value (Null, Object), eitherDecodeStrict, encode)
 import Data.ByteString (ByteString)
 import Data.ByteString.Char8 (pack)
@@ -50,6 +51,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.Time.Clock (UTCTime)
+
 import Network.HTTP.Client
   ( Manager,
     Request,
@@ -81,6 +83,7 @@ import Network.HTTP.Client.Internal
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Types.Status (Status (..))
 import qualified Network.Socket as S
+
 import Podman.Types (Error)
 
 -- | Use 'withClient' to create the PodmanClient
@@ -159,7 +162,8 @@ withQs args = case concatMap (uncurry encodeQueryParam) args of
 
 podmanConn :: MonadIO m => PodmanClient -> Verb -> Path -> QueryArgs -> (Connection -> IO a) -> m (Result a)
 podmanConn client verb (Path path) args cb = liftIO $ do
-  initRequest <- parseUrlThrow (T.unpack (baseUrl client <> path))
+  let url = T.unpack $ baseUrl client <> path
+  initRequest <- parseUrlThrow url
   withConnection initRequest (manager client) (initConn initRequest)
   where
     initConn initRequest conn = do
@@ -183,7 +187,8 @@ podmanConn client verb (Path path) args cb = liftIO $ do
 
 podmanStream :: MonadIO m => PodmanClient -> Verb -> Path -> QueryArgs -> (IO ByteString -> IO a) -> m (Result a)
 podmanStream client verb (Path path) args cb = do
-  initRequest <- liftIO $ parseUrlThrow (T.unpack (baseUrl client <> path))
+  let url = T.unpack $ baseUrl client <> path
+  initRequest <- liftIO $ parseUrlThrow url
   let request =
         initRequest
           { method = verb,
@@ -203,7 +208,8 @@ podmanStream client verb (Path path) args cb = do
 
 podmanReq :: (MonadIO m, ToJSON a, FromJSON b) => PodmanClient -> Verb -> Body a -> Path -> QueryArgs -> m (ResultB b)
 podmanReq client verb body (Path path) args = do
-  initRequest <- liftIO $ parseUrlThrow (T.unpack (baseUrl client <> path))
+  let url = T.unpack $ baseUrl client <> path
+  initRequest <- liftIO $ parseUrlThrow url
   let request' =
         initRequest
           { method = verb,
