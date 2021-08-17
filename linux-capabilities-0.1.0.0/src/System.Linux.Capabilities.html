@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DerivingStrategies #-}</span><span>
+</span><a name="line-2"></a><span>
+</span><a name="line-3"></a><span class="hs-comment">-- |</span><span>
+</span><a name="line-4"></a><span class="hs-comment">-- Copyright: (c) 2021 Red Hat</span><span>
+</span><a name="line-5"></a><span class="hs-comment">-- SPDX-License-Identifier: Apache-2.0</span><span>
+</span><a name="line-6"></a><span class="hs-comment">-- Maintainer: Tristan de Cacqueray &lt;tdecacqu@redhat.com&gt;</span><span>
+</span><a name="line-7"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">System.Linux.Capabilities</span><span> </span><span class="hs-special">(</span><a href="System.Linux.Capabilities.html#Capability"><span class="hs-identifier hs-type">Capability</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-8"></a><span>
+</span><a name="line-9"></a><span class="hs-comment">-- | Linux capabilities</span><span>
+</span><a name="line-10"></a><span class="hs-keyword">data</span><span> </span><a name="Capability"><a href="System.Linux.Capabilities.html#Capability"><span class="hs-identifier">Capability</span></a></a><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-comment">-- | - In a system with the [_POSIX_CHOWN_RESTRICTED] option defined, this</span><span>
+</span><a name="line-12"></a><span>    </span><span class="hs-comment">-- overrides the restriction of changing file ownership and group</span><span>
+</span><a name="line-13"></a><span>    </span><span class="hs-comment">-- ownership.</span><span>
+</span><a name="line-14"></a><span>    </span><a name="CAP_CHOWN"><a href="System.Linux.Capabilities.html#CAP_CHOWN"><span class="hs-identifier">CAP_CHOWN</span></a></a><span>
+</span><a name="line-15"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Override all DAC access, including ACL execute access if</span><span>
+</span><a name="line-16"></a><span>    </span><span class="hs-comment">-- [_POSIX_ACL] is defined. Excluding DAC access covered by</span><span>
+</span><a name="line-17"></a><span>    </span><span class="hs-comment">-- CAP_LINUX_IMMUTABLE.</span><span>
+</span><a name="line-18"></a><span>    </span><a name="CAP_DAC_OVERRIDE"><a href="System.Linux.Capabilities.html#CAP_DAC_OVERRIDE"><span class="hs-identifier">CAP_DAC_OVERRIDE</span></a></a><span>
+</span><a name="line-19"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Overrides all DAC restrictions regarding read and search on files</span><span>
+</span><a name="line-20"></a><span>    </span><span class="hs-comment">-- and directories, including ACL restrictions if [_POSIX_ACL] is</span><span>
+</span><a name="line-21"></a><span>    </span><span class="hs-comment">-- defined. Excluding DAC access covered by CAP_LINUX_IMMUTABLE.</span><span>
+</span><a name="line-22"></a><span>    </span><a name="CAP_DAC_READ_SEARCH"><a href="System.Linux.Capabilities.html#CAP_DAC_READ_SEARCH"><span class="hs-identifier">CAP_DAC_READ_SEARCH</span></a></a><span>
+</span><a name="line-23"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Overrides all restrictions about allowed operations on files, where</span><span>
+</span><a name="line-24"></a><span>    </span><span class="hs-comment">-- file owner ID must be equal to the user ID, except where CAP_FSETID</span><span>
+</span><a name="line-25"></a><span>    </span><span class="hs-comment">-- is applicable. It doesn't override MAC and DAC restrictions.</span><span>
+</span><a name="line-26"></a><span>    </span><a name="CAP_FOWNER"><a href="System.Linux.Capabilities.html#CAP_FOWNER"><span class="hs-identifier">CAP_FOWNER</span></a></a><span>
+</span><a name="line-27"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Overrides the following restrictions that the effective user ID</span><span>
+</span><a name="line-28"></a><span>    </span><span class="hs-comment">-- shall match the file owner ID when setting the S_ISUID and S_ISGID</span><span>
+</span><a name="line-29"></a><span>    </span><span class="hs-comment">-- bits on that file; that the effective group ID (or one of the</span><span>
+</span><a name="line-30"></a><span>    </span><span class="hs-comment">-- supplementary group IDs) shall match the file owner ID when setting</span><span>
+</span><a name="line-31"></a><span>    </span><span class="hs-comment">-- the S_ISGID bit on that file; that the S_ISUID and S_ISGID bits are</span><span>
+</span><a name="line-32"></a><span>    </span><span class="hs-comment">-- cleared on successful return from chown(2) (not implemented).</span><span>
+</span><a name="line-33"></a><span>    </span><a name="CAP_FSETID"><a href="System.Linux.Capabilities.html#CAP_FSETID"><span class="hs-identifier">CAP_FSETID</span></a></a><span>
+</span><a name="line-34"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Overrides the restriction that the real or effective user ID of a</span><span>
+</span><a name="line-35"></a><span>    </span><span class="hs-comment">-- process sending a signal must match the real or effective user ID</span><span>
+</span><a name="line-36"></a><span>    </span><span class="hs-comment">-- of the process receiving the signal.</span><span>
+</span><a name="line-37"></a><span>    </span><a name="CAP_KILL"><a href="System.Linux.Capabilities.html#CAP_KILL"><span class="hs-identifier">CAP_KILL</span></a></a><span>
+</span><a name="line-38"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allows setgid(2) manipulation</span><span>
+</span><a name="line-39"></a><span>    </span><span class="hs-comment">-- - Allows setgroups(2)</span><span>
+</span><a name="line-40"></a><span>    </span><span class="hs-comment">-- - Allows forged gids on socket credentials passing.</span><span>
+</span><a name="line-41"></a><span>    </span><a name="CAP_SETGID"><a href="System.Linux.Capabilities.html#CAP_SETGID"><span class="hs-identifier">CAP_SETGID</span></a></a><span>
+</span><a name="line-42"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allows set*uid(2) manipulation (including fsuid).</span><span>
+</span><a name="line-43"></a><span>    </span><span class="hs-comment">-- - Allows forged pids on socket credentials passing.</span><span>
+</span><a name="line-44"></a><span>    </span><a name="CAP_SETUID"><a href="System.Linux.Capabilities.html#CAP_SETUID"><span class="hs-identifier">CAP_SETUID</span></a></a><span>
+</span><a name="line-45"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Without VFS support for capabilities:</span><span>
+</span><a name="line-46"></a><span>    </span><span class="hs-comment">--   Transfer any capability in your permitted set to any pid,</span><span>
+</span><a name="line-47"></a><span>    </span><span class="hs-comment">--   remove any capability in your permitted set from any pid</span><span>
+</span><a name="line-48"></a><span>    </span><span class="hs-comment">-- With VFS support for capabilities (neither of above, but)</span><span>
+</span><a name="line-49"></a><span>    </span><span class="hs-comment">--   Add any capability from current's capability bounding set</span><span>
+</span><a name="line-50"></a><span>    </span><span class="hs-comment">--    to the current process' inheritable set</span><span>
+</span><a name="line-51"></a><span>    </span><span class="hs-comment">--   Allow taking bits out of capability bounding set</span><span>
+</span><a name="line-52"></a><span>    </span><span class="hs-comment">--   Allow modification of the securebits for a process</span><span>
+</span><a name="line-53"></a><span>    </span><a name="CAP_SETPCAP"><a href="System.Linux.Capabilities.html#CAP_SETPCAP"><span class="hs-identifier">CAP_SETPCAP</span></a></a><span>
+</span><a name="line-54"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow modification of S_IMMUTABLE and S_APPEND file attributes</span><span>
+</span><a name="line-55"></a><span>    </span><a name="CAP_LINUX_IMMUTABLE"><a href="System.Linux.Capabilities.html#CAP_LINUX_IMMUTABLE"><span class="hs-identifier">CAP_LINUX_IMMUTABLE</span></a></a><span>
+</span><a name="line-56"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allows binding to TCP/UDP sockets below 1024</span><span>
+</span><a name="line-57"></a><span>    </span><span class="hs-comment">-- - Allows binding to ATM VCIs below 32</span><span>
+</span><a name="line-58"></a><span>    </span><a name="CAP_NET_BIND_SERVICE"><a href="System.Linux.Capabilities.html#CAP_NET_BIND_SERVICE"><span class="hs-identifier">CAP_NET_BIND_SERVICE</span></a></a><span>
+</span><a name="line-59"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow broadcasting, listen to multicast</span><span>
+</span><a name="line-60"></a><span>    </span><a name="CAP_NET_BROADCAST"><a href="System.Linux.Capabilities.html#CAP_NET_BROADCAST"><span class="hs-identifier">CAP_NET_BROADCAST</span></a></a><span>
+</span><a name="line-61"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow interface configuration</span><span>
+</span><a name="line-62"></a><span>    </span><span class="hs-comment">-- - Allow administration of IP firewall, masquerading and accounting</span><span>
+</span><a name="line-63"></a><span>    </span><span class="hs-comment">-- - Allow setting debug option on sockets</span><span>
+</span><a name="line-64"></a><span>    </span><span class="hs-comment">-- - Allow modification of routing tables</span><span>
+</span><a name="line-65"></a><span>    </span><span class="hs-comment">-- - Allow setting arbitrary process / process group ownership on</span><span>
+</span><a name="line-66"></a><span>    </span><span class="hs-comment">-- sockets</span><span>
+</span><a name="line-67"></a><span>    </span><span class="hs-comment">-- - Allow binding to any address for transparent proxying (also via NET_RAW)</span><span>
+</span><a name="line-68"></a><span>    </span><span class="hs-comment">-- - Allow setting TOS (type of service)</span><span>
+</span><a name="line-69"></a><span>    </span><span class="hs-comment">-- - Allow setting promiscuous mode</span><span>
+</span><a name="line-70"></a><span>    </span><span class="hs-comment">-- - Allow clearing driver statistics</span><span>
+</span><a name="line-71"></a><span>    </span><span class="hs-comment">-- - Allow multicasting</span><span>
+</span><a name="line-72"></a><span>    </span><span class="hs-comment">-- - Allow read/write of device-specific registers</span><span>
+</span><a name="line-73"></a><span>    </span><span class="hs-comment">-- - Allow activation of ATM control sockets</span><span>
+</span><a name="line-74"></a><span>    </span><a name="CAP_NET_ADMIN"><a href="System.Linux.Capabilities.html#CAP_NET_ADMIN"><span class="hs-identifier">CAP_NET_ADMIN</span></a></a><span>
+</span><a name="line-75"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow use of RAW sockets</span><span>
+</span><a name="line-76"></a><span>    </span><span class="hs-comment">-- - Allow use of PACKET sockets</span><span>
+</span><a name="line-77"></a><span>    </span><span class="hs-comment">-- - Allow binding to any address for transparent proxying (also via NET_ADMIN)</span><span>
+</span><a name="line-78"></a><span>    </span><a name="CAP_NET_RAW"><a href="System.Linux.Capabilities.html#CAP_NET_RAW"><span class="hs-identifier">CAP_NET_RAW</span></a></a><span>
+</span><a name="line-79"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow locking of shared memory segments</span><span>
+</span><a name="line-80"></a><span>    </span><span class="hs-comment">-- - Allow mlock and mlockall (which doesn't really have anything to do</span><span>
+</span><a name="line-81"></a><span>    </span><span class="hs-comment">-- with IPC)</span><span>
+</span><a name="line-82"></a><span>    </span><a name="CAP_IPC_LOCK"><a href="System.Linux.Capabilities.html#CAP_IPC_LOCK"><span class="hs-identifier">CAP_IPC_LOCK</span></a></a><span>
+</span><a name="line-83"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Override IPC ownership checks</span><span>
+</span><a name="line-84"></a><span>    </span><a name="CAP_IPC_OWNER"><a href="System.Linux.Capabilities.html#CAP_IPC_OWNER"><span class="hs-identifier">CAP_IPC_OWNER</span></a></a><span>
+</span><a name="line-85"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Insert and remove kernel modules - modify kernel without limit</span><span>
+</span><a name="line-86"></a><span>    </span><a name="CAP_SYS_MODULE"><a href="System.Linux.Capabilities.html#CAP_SYS_MODULE"><span class="hs-identifier">CAP_SYS_MODULE</span></a></a><span>
+</span><a name="line-87"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow ioperm/iopl access</span><span>
+</span><a name="line-88"></a><span>    </span><span class="hs-comment">-- - Allow sending USB messages to any device via /dev/bus/usb</span><span>
+</span><a name="line-89"></a><span>    </span><a name="CAP_SYS_RAWIO"><a href="System.Linux.Capabilities.html#CAP_SYS_RAWIO"><span class="hs-identifier">CAP_SYS_RAWIO</span></a></a><span>
+</span><a name="line-90"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow use of chroot()</span><span>
+</span><a name="line-91"></a><span>    </span><a name="CAP_SYS_CHROOT"><a href="System.Linux.Capabilities.html#CAP_SYS_CHROOT"><span class="hs-identifier">CAP_SYS_CHROOT</span></a></a><span>
+</span><a name="line-92"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow ptrace() of any process</span><span>
+</span><a name="line-93"></a><span>    </span><a name="CAP_SYS_PTRACE"><a href="System.Linux.Capabilities.html#CAP_SYS_PTRACE"><span class="hs-identifier">CAP_SYS_PTRACE</span></a></a><span>
+</span><a name="line-94"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow configuration of process accounting</span><span>
+</span><a name="line-95"></a><span>    </span><a name="CAP_SYS_PACCT"><a href="System.Linux.Capabilities.html#CAP_SYS_PACCT"><span class="hs-identifier">CAP_SYS_PACCT</span></a></a><span>
+</span><a name="line-96"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow configuration of the secure attention key</span><span>
+</span><a name="line-97"></a><span>    </span><span class="hs-comment">-- - Allow administration of the random device</span><span>
+</span><a name="line-98"></a><span>    </span><span class="hs-comment">-- - Allow examination and configuration of disk quotas</span><span>
+</span><a name="line-99"></a><span>    </span><span class="hs-comment">-- - Allow setting the domainname</span><span>
+</span><a name="line-100"></a><span>    </span><span class="hs-comment">-- - Allow setting the hostname</span><span>
+</span><a name="line-101"></a><span>    </span><span class="hs-comment">-- - Allow calling bdflush()</span><span>
+</span><a name="line-102"></a><span>    </span><span class="hs-comment">-- - Allow mount() and umount(), setting up new smb connection</span><span>
+</span><a name="line-103"></a><span>    </span><span class="hs-comment">-- - Allow some autofs root ioctls</span><span>
+</span><a name="line-104"></a><span>    </span><span class="hs-comment">-- - Allow nfsservctl</span><span>
+</span><a name="line-105"></a><span>    </span><span class="hs-comment">-- - Allow VM86_REQUEST_IRQ</span><span>
+</span><a name="line-106"></a><span>    </span><span class="hs-comment">-- - Allow to read/write pci config on alpha</span><span>
+</span><a name="line-107"></a><span>    </span><span class="hs-comment">-- - Allow irix_prctl on mips (setstacksize)</span><span>
+</span><a name="line-108"></a><span>    </span><span class="hs-comment">-- - Allow flushing all cache on m68k (sys_cacheflush)</span><span>
+</span><a name="line-109"></a><span>    </span><span class="hs-comment">-- - Allow removing semaphores</span><span>
+</span><a name="line-110"></a><span>    </span><span class="hs-comment">-- - Used instead of CAP_CHOWN to &quot;chown&quot; IPC message queues, semaphores</span><span>
+</span><a name="line-111"></a><span>    </span><span class="hs-comment">-- and shared memory</span><span>
+</span><a name="line-112"></a><span>    </span><span class="hs-comment">-- - Allow locking/unlocking of shared memory segment</span><span>
+</span><a name="line-113"></a><span>    </span><span class="hs-comment">-- - Allow turning swap on/off</span><span>
+</span><a name="line-114"></a><span>    </span><span class="hs-comment">-- - Allow forged pids on socket credentials passing</span><span>
+</span><a name="line-115"></a><span>    </span><span class="hs-comment">-- - Allow setting readahead and flushing buffers on block devices</span><span>
+</span><a name="line-116"></a><span>    </span><span class="hs-comment">-- - Allow setting geometry in floppy driver</span><span>
+</span><a name="line-117"></a><span>    </span><span class="hs-comment">-- - Allow turning DMA on/off in xd driver</span><span>
+</span><a name="line-118"></a><span>    </span><span class="hs-comment">-- - Allow administration of md devices (mostly the above, but some</span><span>
+</span><a name="line-119"></a><span>    </span><span class="hs-comment">-- extra ioctls)</span><span>
+</span><a name="line-120"></a><span>    </span><span class="hs-comment">-- - Allow tuning the ide driver</span><span>
+</span><a name="line-121"></a><span>    </span><span class="hs-comment">-- - Allow access to the nvram device</span><span>
+</span><a name="line-122"></a><span>    </span><span class="hs-comment">-- - Allow administration of apm_bios, serial and bttv (TV) device</span><span>
+</span><a name="line-123"></a><span>    </span><span class="hs-comment">-- - Allow manufacturer commands in isdn CAPI support driver</span><span>
+</span><a name="line-124"></a><span>    </span><span class="hs-comment">-- - Allow reading non-standardized portions of pci configuration space</span><span>
+</span><a name="line-125"></a><span>    </span><span class="hs-comment">-- - Allow DDI debug ioctl on sbpcd driver</span><span>
+</span><a name="line-126"></a><span>    </span><span class="hs-comment">-- - Allow setting up serial ports</span><span>
+</span><a name="line-127"></a><span>    </span><span class="hs-comment">-- - Allow sending raw qic-117 commands</span><span>
+</span><a name="line-128"></a><span>    </span><span class="hs-comment">-- - Allow enabling/disabling tagged queuing on SCSI controllers and sending</span><span>
+</span><a name="line-129"></a><span>    </span><span class="hs-comment">-- arbitrary SCSI commands</span><span>
+</span><a name="line-130"></a><span>    </span><span class="hs-comment">-- - Allow setting encryption key on loopback filesystem</span><span>
+</span><a name="line-131"></a><span>    </span><span class="hs-comment">-- - Allow setting zone reclaim policy</span><span>
+</span><a name="line-132"></a><span>    </span><span class="hs-comment">-- - Allow everything under CAP_BPF and CAP_PERFMON for backward compatibility</span><span>
+</span><a name="line-133"></a><span>    </span><a name="CAP_SYS_ADMIN"><a href="System.Linux.Capabilities.html#CAP_SYS_ADMIN"><span class="hs-identifier">CAP_SYS_ADMIN</span></a></a><span>
+</span><a name="line-134"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow use of reboot()</span><span>
+</span><a name="line-135"></a><span>    </span><a name="CAP_SYS_BOOT"><a href="System.Linux.Capabilities.html#CAP_SYS_BOOT"><span class="hs-identifier">CAP_SYS_BOOT</span></a></a><span>
+</span><a name="line-136"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow raising priority and setting priority on other (different</span><span>
+</span><a name="line-137"></a><span>    </span><span class="hs-comment">-- UID) processes</span><span>
+</span><a name="line-138"></a><span>    </span><span class="hs-comment">-- - Allow use of FIFO and round-robin (realtime) scheduling on own</span><span>
+</span><a name="line-139"></a><span>    </span><span class="hs-comment">-- processes and setting the scheduling algorithm used by another</span><span>
+</span><a name="line-140"></a><span>    </span><span class="hs-comment">-- process.</span><span>
+</span><a name="line-141"></a><span>    </span><span class="hs-comment">-- - Allow setting cpu affinity on other processes</span><span>
+</span><a name="line-142"></a><span>    </span><span class="hs-comment">-- - Allow setting realtime ioprio class</span><span>
+</span><a name="line-143"></a><span>    </span><span class="hs-comment">-- - Allow setting ioprio class on other processes</span><span>
+</span><a name="line-144"></a><span>    </span><a name="CAP_SYS_NICE"><a href="System.Linux.Capabilities.html#CAP_SYS_NICE"><span class="hs-identifier">CAP_SYS_NICE</span></a></a><span>
+</span><a name="line-145"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Override resource limits. Set resource limits.</span><span>
+</span><a name="line-146"></a><span>    </span><span class="hs-comment">-- - Override quota limits.</span><span>
+</span><a name="line-147"></a><span>    </span><span class="hs-comment">-- - Override reserved space on ext2 filesystem</span><span>
+</span><a name="line-148"></a><span>    </span><span class="hs-comment">-- - Modify data journaling mode on ext3 filesystem (uses journaling</span><span>
+</span><a name="line-149"></a><span>    </span><span class="hs-comment">-- resources)</span><span>
+</span><a name="line-150"></a><span>    </span><span class="hs-comment">-- - NOTE: ext2 honors fsuid when checking for resource overrides, so</span><span>
+</span><a name="line-151"></a><span>    </span><span class="hs-comment">-- you can override using fsuid too</span><span>
+</span><a name="line-152"></a><span>    </span><span class="hs-comment">-- - Override size restrictions on IPC message queues</span><span>
+</span><a name="line-153"></a><span>    </span><span class="hs-comment">-- - Allow more than 64hz interrupts from the real-time clock</span><span>
+</span><a name="line-154"></a><span>    </span><span class="hs-comment">-- - Override max number of consoles on console allocation</span><span>
+</span><a name="line-155"></a><span>    </span><span class="hs-comment">-- - Override max number of keymaps</span><span>
+</span><a name="line-156"></a><span>    </span><span class="hs-comment">-- - Control memory reclaim behavior</span><span>
+</span><a name="line-157"></a><span>    </span><a name="CAP_SYS_RESOURCE"><a href="System.Linux.Capabilities.html#CAP_SYS_RESOURCE"><span class="hs-identifier">CAP_SYS_RESOURCE</span></a></a><span>
+</span><a name="line-158"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow manipulation of system clock</span><span>
+</span><a name="line-159"></a><span>    </span><span class="hs-comment">-- - Allow irix_stime on mips</span><span>
+</span><a name="line-160"></a><span>    </span><span class="hs-comment">-- - Allow setting the real-time clock</span><span>
+</span><a name="line-161"></a><span>    </span><a name="CAP_SYS_TIME"><a href="System.Linux.Capabilities.html#CAP_SYS_TIME"><span class="hs-identifier">CAP_SYS_TIME</span></a></a><span>
+</span><a name="line-162"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow configuration of tty devices</span><span>
+</span><a name="line-163"></a><span>    </span><span class="hs-comment">-- - Allow vhangup() of tty</span><span>
+</span><a name="line-164"></a><span>    </span><a name="CAP_SYS_TTY_CONFIG"><a href="System.Linux.Capabilities.html#CAP_SYS_TTY_CONFIG"><span class="hs-identifier">CAP_SYS_TTY_CONFIG</span></a></a><span>
+</span><a name="line-165"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow the privileged aspects of mknod()</span><span>
+</span><a name="line-166"></a><span>    </span><a name="CAP_MKNOD"><a href="System.Linux.Capabilities.html#CAP_MKNOD"><span class="hs-identifier">CAP_MKNOD</span></a></a><span>
+</span><a name="line-167"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow taking of leases on files</span><span>
+</span><a name="line-168"></a><span>    </span><a name="CAP_LEASE"><a href="System.Linux.Capabilities.html#CAP_LEASE"><span class="hs-identifier">CAP_LEASE</span></a></a><span>
+</span><a name="line-169"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow writing the audit log via unicast netlink socket</span><span>
+</span><a name="line-170"></a><span>    </span><a name="CAP_AUDIT_WRITE"><a href="System.Linux.Capabilities.html#CAP_AUDIT_WRITE"><span class="hs-identifier">CAP_AUDIT_WRITE</span></a></a><span>
+</span><a name="line-171"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow configuration of audit via unicast netlink socket</span><span>
+</span><a name="line-172"></a><span>    </span><a name="CAP_AUDIT_CONTROL"><a href="System.Linux.Capabilities.html#CAP_AUDIT_CONTROL"><span class="hs-identifier">CAP_AUDIT_CONTROL</span></a></a><span>
+</span><a name="line-173"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Set or remove capabilities on files</span><span>
+</span><a name="line-174"></a><span>    </span><a name="CAP_SETFCAP"><a href="System.Linux.Capabilities.html#CAP_SETFCAP"><span class="hs-identifier">CAP_SETFCAP</span></a></a><span>
+</span><a name="line-175"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Override MAC access.</span><span>
+</span><a name="line-176"></a><span>    </span><span class="hs-comment">-- The base kernel enforces no MAC policy.</span><span>
+</span><a name="line-177"></a><span>    </span><span class="hs-comment">-- An LSM may enforce a MAC policy, and if it does and it chooses</span><span>
+</span><a name="line-178"></a><span>    </span><span class="hs-comment">-- to implement capability based overrides of that policy, this is</span><span>
+</span><a name="line-179"></a><span>    </span><span class="hs-comment">-- the capability it should use to do so.</span><span>
+</span><a name="line-180"></a><span>    </span><a name="CAP_MAC_OVERRIDE"><a href="System.Linux.Capabilities.html#CAP_MAC_OVERRIDE"><span class="hs-identifier">CAP_MAC_OVERRIDE</span></a></a><span>
+</span><a name="line-181"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow MAC configuration or state changes.</span><span>
+</span><a name="line-182"></a><span>    </span><span class="hs-comment">-- The base kernel requires no MAC configuration.</span><span>
+</span><a name="line-183"></a><span>    </span><span class="hs-comment">-- An LSM may enforce a MAC policy, and if it does and it chooses</span><span>
+</span><a name="line-184"></a><span>    </span><span class="hs-comment">-- to implement capability based checks on modifications to that</span><span>
+</span><a name="line-185"></a><span>    </span><span class="hs-comment">-- policy or the data required to maintain it, this is the</span><span>
+</span><a name="line-186"></a><span>    </span><span class="hs-comment">-- capability it should use to do so.</span><span>
+</span><a name="line-187"></a><span>    </span><a name="CAP_MAC_ADMIN"><a href="System.Linux.Capabilities.html#CAP_MAC_ADMIN"><span class="hs-identifier">CAP_MAC_ADMIN</span></a></a><span>
+</span><a name="line-188"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow configuring the kernel's syslog (printk behaviour)</span><span>
+</span><a name="line-189"></a><span>    </span><a name="CAP_SYSLOG"><a href="System.Linux.Capabilities.html#CAP_SYSLOG"><span class="hs-identifier">CAP_SYSLOG</span></a></a><span>
+</span><a name="line-190"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow triggering something that will wake the system</span><span>
+</span><a name="line-191"></a><span>    </span><a name="CAP_WAKE_ALARM"><a href="System.Linux.Capabilities.html#CAP_WAKE_ALARM"><span class="hs-identifier">CAP_WAKE_ALARM</span></a></a><span>
+</span><a name="line-192"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow preventing system suspends</span><span>
+</span><a name="line-193"></a><span>    </span><a name="CAP_BLOCK_SUSPEND"><a href="System.Linux.Capabilities.html#CAP_BLOCK_SUSPEND"><span class="hs-identifier">CAP_BLOCK_SUSPEND</span></a></a><span>
+</span><a name="line-194"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow reading the audit log via multicast netlink socket</span><span>
+</span><a name="line-195"></a><span>    </span><a name="CAP_AUDIT_READ"><a href="System.Linux.Capabilities.html#CAP_AUDIT_READ"><span class="hs-identifier">CAP_AUDIT_READ</span></a></a><span>
+</span><a name="line-196"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow system performance and observability privileged operations</span><span>
+</span><a name="line-197"></a><span>    </span><span class="hs-comment">-- using perf_events, i915_perf and other kernel subsystems</span><span>
+</span><a name="line-198"></a><span>    </span><a name="CAP_PERFMON"><a href="System.Linux.Capabilities.html#CAP_PERFMON"><span class="hs-identifier">CAP_PERFMON</span></a></a><span>
+</span><a name="line-199"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - CAP_BPF allows BPF operations</span><span>
+</span><a name="line-200"></a><span>    </span><a name="CAP_BPF"><a href="System.Linux.Capabilities.html#CAP_BPF"><span class="hs-identifier">CAP_BPF</span></a></a><span>
+</span><a name="line-201"></a><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | - Allow checkpoint/restore related operations</span><span>
+</span><a name="line-202"></a><span>    </span><span class="hs-comment">-- - Allow PID selection during clone3()</span><span>
+</span><a name="line-203"></a><span>    </span><span class="hs-comment">-- - Allow writing to ns_last_pid</span><span>
+</span><a name="line-204"></a><span>    </span><a name="CAP_CHECKPOINT_RESTORE"><a href="System.Linux.Capabilities.html#CAP_CHECKPOINT_RESTORE"><span class="hs-identifier">CAP_CHECKPOINT_RESTORE</span></a></a><span>
+</span><a name="line-205"></a><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-keyword">stock</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Bounded</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Enum</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Read</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">)</span><span>
+</span><a name="line-206"></a></pre></body></html>

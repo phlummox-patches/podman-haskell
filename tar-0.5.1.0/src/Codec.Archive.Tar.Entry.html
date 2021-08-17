@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><a name="line-2"></a><span class="hs-comment">-- |</span><span>
+</span><a name="line-3"></a><span class="hs-comment">-- Module      :  Codec.Archive.Tar.Entry</span><span>
+</span><a name="line-4"></a><span class="hs-comment">-- Copyright   :  (c) 2007 Bjorn Bringert,</span><span>
+</span><a name="line-5"></a><span class="hs-comment">--                    2008 Andrea Vezzosi,</span><span>
+</span><a name="line-6"></a><span class="hs-comment">--                    2008-2009 Duncan Coutts</span><span>
+</span><a name="line-7"></a><span class="hs-comment">-- License     :  BSD3</span><span>
+</span><a name="line-8"></a><span class="hs-comment">--</span><span>
+</span><a name="line-9"></a><span class="hs-comment">-- Maintainer  :  duncan@community.haskell.org</span><span>
+</span><a name="line-10"></a><span class="hs-comment">-- Portability :  portable</span><span>
+</span><a name="line-11"></a><span class="hs-comment">--</span><span>
+</span><a name="line-12"></a><span class="hs-comment">-- Types and functions to manipulate tar entries.</span><span>
+</span><a name="line-13"></a><span class="hs-comment">--</span><span>
+</span><a name="line-14"></a><span class="hs-comment">-- While the &quot;Codec.Archive.Tar&quot; module provides only the simple high level</span><span>
+</span><a name="line-15"></a><span class="hs-comment">-- API, this module provides full access to the details of tar entries. This</span><span>
+</span><a name="line-16"></a><span class="hs-comment">-- lets you inspect all the meta-data, construct entries and handle error cases</span><span>
+</span><a name="line-17"></a><span class="hs-comment">-- more precisely.</span><span>
+</span><a name="line-18"></a><span class="hs-comment">--</span><span>
+</span><a name="line-19"></a><span class="hs-comment">-- This module uses common names and so is designed to be imported qualified:</span><span>
+</span><a name="line-20"></a><span class="hs-comment">--</span><span>
+</span><a name="line-21"></a><span class="hs-comment">-- &gt; import qualified Codec.Archive.Tar       as Tar</span><span>
+</span><a name="line-22"></a><span class="hs-comment">-- &gt; import qualified Codec.Archive.Tar.Entry as Tar</span><span>
+</span><a name="line-23"></a><span class="hs-comment">--</span><span>
+</span><a name="line-24"></a><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><a name="line-25"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Codec.Archive.Tar.Entry</span><span> </span><span class="hs-special">(</span><span>
+</span><a name="line-26"></a><span>
+</span><a name="line-27"></a><span>  </span><span class="hs-comment">-- * Tar entry and associated types</span><span>
+</span><a name="line-28"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#Entry"><span class="hs-identifier hs-type">Entry</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><a name="line-29"></a><span>  </span><span class="hs-comment">--TODO: should be the following with the Entry constructor not exported,</span><span>
+</span><a name="line-30"></a><span>  </span><span class="hs-comment">--      but haddock cannot document that properly</span><span>
+</span><a name="line-31"></a><span>  </span><span class="hs-comment">--      see http://trac.haskell.org/haddock/ticket/3</span><span>
+</span><a name="line-32"></a><span>  </span><span class="hs-comment">--Entry(filePath, fileMode, ownerId, groupId, fileSize, modTime,</span><span>
+</span><a name="line-33"></a><span>  </span><span class="hs-comment">--      fileType, linkTarget, headerExt, fileContent),</span><span>
+</span><a name="line-34"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#entryPath"><span class="hs-identifier hs-var">entryPath</span></a><span class="hs-special">,</span><span>
+</span><a name="line-35"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#EntryContent"><span class="hs-identifier hs-type">EntryContent</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><a name="line-36"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#Ownership"><span class="hs-identifier hs-type">Ownership</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><a name="line-37"></a><span>
+</span><a name="line-38"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#FileSize"><span class="hs-identifier hs-type">FileSize</span></a><span class="hs-special">,</span><span>
+</span><a name="line-39"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#Permissions"><span class="hs-identifier hs-type">Permissions</span></a><span class="hs-special">,</span><span>
+</span><a name="line-40"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#EpochTime"><span class="hs-identifier hs-type">EpochTime</span></a><span class="hs-special">,</span><span>
+</span><a name="line-41"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#DevMajor"><span class="hs-identifier hs-type">DevMajor</span></a><span class="hs-special">,</span><span>
+</span><a name="line-42"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#DevMinor"><span class="hs-identifier hs-type">DevMinor</span></a><span class="hs-special">,</span><span>
+</span><a name="line-43"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#TypeCode"><span class="hs-identifier hs-type">TypeCode</span></a><span class="hs-special">,</span><span>
+</span><a name="line-44"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#Format"><span class="hs-identifier hs-type">Format</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><a name="line-45"></a><span>
+</span><a name="line-46"></a><span>  </span><span class="hs-comment">-- * Constructing simple entry values</span><span>
+</span><a name="line-47"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#simpleEntry"><span class="hs-identifier hs-var">simpleEntry</span></a><span class="hs-special">,</span><span>
+</span><a name="line-48"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#fileEntry"><span class="hs-identifier hs-var">fileEntry</span></a><span class="hs-special">,</span><span>
+</span><a name="line-49"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#directoryEntry"><span class="hs-identifier hs-var">directoryEntry</span></a><span class="hs-special">,</span><span>
+</span><a name="line-50"></a><span>
+</span><a name="line-51"></a><span>  </span><span class="hs-comment">-- * Standard file permissions</span><span>
+</span><a name="line-52"></a><span>  </span><span class="hs-comment">-- | For maximum portability when constructing archives use only these file</span><span>
+</span><a name="line-53"></a><span>  </span><span class="hs-comment">-- permissions.</span><span>
+</span><a name="line-54"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#ordinaryFilePermissions"><span class="hs-identifier hs-var">ordinaryFilePermissions</span></a><span class="hs-special">,</span><span>
+</span><a name="line-55"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#executableFilePermissions"><span class="hs-identifier hs-var">executableFilePermissions</span></a><span class="hs-special">,</span><span>
+</span><a name="line-56"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#directoryPermissions"><span class="hs-identifier hs-var">directoryPermissions</span></a><span class="hs-special">,</span><span>
+</span><a name="line-57"></a><span>
+</span><a name="line-58"></a><span>  </span><span class="hs-comment">-- * Constructing entries from disk files</span><span>
+</span><a name="line-59"></a><span>  </span><a href="Codec.Archive.Tar.Pack.html#packFileEntry"><span class="hs-identifier hs-var">packFileEntry</span></a><span class="hs-special">,</span><span>
+</span><a name="line-60"></a><span>  </span><a href="Codec.Archive.Tar.Pack.html#packDirectoryEntry"><span class="hs-identifier hs-var">packDirectoryEntry</span></a><span class="hs-special">,</span><span>
+</span><a name="line-61"></a><span>  </span><a href="Codec.Archive.Tar.Pack.html#getDirectoryContentsRecursive"><span class="hs-identifier hs-var">getDirectoryContentsRecursive</span></a><span class="hs-special">,</span><span>
+</span><a name="line-62"></a><span>
+</span><a name="line-63"></a><span>  </span><span class="hs-comment">-- * TarPath type</span><span>
+</span><a name="line-64"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#TarPath"><span class="hs-identifier hs-type">TarPath</span></a><span class="hs-special">,</span><span>
+</span><a name="line-65"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#toTarPath"><span class="hs-identifier hs-var">toTarPath</span></a><span class="hs-special">,</span><span>
+</span><a name="line-66"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#fromTarPath"><span class="hs-identifier hs-var">fromTarPath</span></a><span class="hs-special">,</span><span>
+</span><a name="line-67"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#fromTarPathToPosixPath"><span class="hs-identifier hs-var">fromTarPathToPosixPath</span></a><span class="hs-special">,</span><span>
+</span><a name="line-68"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#fromTarPathToWindowsPath"><span class="hs-identifier hs-var">fromTarPathToWindowsPath</span></a><span class="hs-special">,</span><span>
+</span><a name="line-69"></a><span>
+</span><a name="line-70"></a><span>  </span><span class="hs-comment">-- * LinkTarget type</span><span>
+</span><a name="line-71"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#LinkTarget"><span class="hs-identifier hs-type">LinkTarget</span></a><span class="hs-special">,</span><span>
+</span><a name="line-72"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#toLinkTarget"><span class="hs-identifier hs-var">toLinkTarget</span></a><span class="hs-special">,</span><span>
+</span><a name="line-73"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#fromLinkTarget"><span class="hs-identifier hs-var">fromLinkTarget</span></a><span class="hs-special">,</span><span>
+</span><a name="line-74"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#fromLinkTargetToPosixPath"><span class="hs-identifier hs-var">fromLinkTargetToPosixPath</span></a><span class="hs-special">,</span><span>
+</span><a name="line-75"></a><span>  </span><a href="Codec.Archive.Tar.Types.html#fromLinkTargetToWindowsPath"><span class="hs-identifier hs-var">fromLinkTargetToWindowsPath</span></a><span class="hs-special">,</span><span>
+</span><a name="line-76"></a><span>
+</span><a name="line-77"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-78"></a><span>
+</span><a name="line-79"></a><span class="hs-keyword">import</span><span> </span><a href="Codec.Archive.Tar.Types.html"><span class="hs-identifier">Codec.Archive.Tar.Types</span></a><span>
+</span><a name="line-80"></a><span class="hs-keyword">import</span><span> </span><a href="Codec.Archive.Tar.Pack.html"><span class="hs-identifier">Codec.Archive.Tar.Pack</span></a><span>
+</span><a name="line-81"></a></pre></body></html>
