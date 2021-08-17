@@ -6,16 +6,20 @@ module Main (main) where
 
 import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Archive.Tar.Entry as Tar
+
 import Control.Concurrent.Async (async, waitAnyCancel)
-import Control.Monad (unless, when)
-import Control.Monad.IO.Class (MonadIO (..))
+import Control.Monad
+import Control.Monad.IO.Class   (MonadIO (..))
+
 import Data.ByteString.Lazy (ByteString)
 import Data.Either (fromRight)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import Podman
+
 import System.Environment (getArgs)
 import System.IO (hFlush, stdout)
+
+import Podman
 
 -- | Ensure an image is available
 ensureImage :: MonadIO m => PodmanClient -> ImageName -> m ()
