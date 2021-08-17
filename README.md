@@ -28,8 +28,11 @@ For the compat API, use the [docker client](https://hackage.haskell.org/package/
 
 ## Documentation
 
-Haddock documentation is available at
+Haddock documentation for the original project is available at
 <https://docs.softwarefactory-project.io/podman-haskell/>.
+
+Haddock documentation for this repository is available at
+<https://phlummox-patches.github.io/podman-haskell/>.
 
 ## Contribute
 
