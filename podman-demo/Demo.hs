@@ -11,15 +11,21 @@ import Control.Concurrent.Async (async, waitAnyCancel)
 import Control.Monad
 import Control.Monad.IO.Class   (MonadIO (..))
 
-import Data.ByteString.Lazy (ByteString)
-import Data.Either (fromRight)
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
+import            Data.ByteString.Lazy (ByteString)
+import            Data.Either (fromRight)
+import qualified  Data.List as L
+import qualified  Data.Text as T
+import qualified  Data.Text.Encoding as T
 
 import System.Environment (getArgs)
 import System.IO (hFlush, stdout)
 
 import Podman
+
+-- | whether there is an end-user/tty, and we
+-- want to run the "attach" portion of the demo
+data Interactive = Interactive | NonInteractive
+  deriving Eq
 
 -- | Ensure an image is available
 ensureImage :: MonadIO m => PodmanClient -> ImageName -> m ()
@@ -172,14 +178,16 @@ filesCopy client name = do
     Right x -> ok "file received" x
 
 -- | A demo program that tries to call every api
-demo :: MonadIO m => ImageName -> ContainerName -> PodmanClient -> m ()
-demo imageName containerName client = do
+demo :: MonadIO m =>
+    Interactive -> ImageName -> ContainerName -> PodmanClient -> m ()
+demo isInteractive imageName containerName client = do
   version client
   ensureImage client imageName
   listImages client
   showImage client imageName
   ensureContainer client imageName containerName
-  interactiveAttach client containerName
+  when (isInteractive == Interactive) $
+    interactiveAttach client containerName
   execContainer client containerName ["cat", "/etc/os-release"]
   filesCopy client containerName
   tailContainer client containerName False
@@ -268,9 +276,16 @@ shell client = do
 -- | CLI entrypoint
 main :: IO ()
 main = do
-  args <- getArgs
+  (isInteractive, args) <- do args <- getArgs
+                              if "--interactive" `elem` args
+                                then return (Interactive, L.delete "--interactive" args)
+                                else return (NonInteractive, args)
+
   case map T.pack args of
-    [url, image, container] -> withClient url $  demo (ImageName image) (ContainerName container)
+    [url, image, container] -> withClient url $
+                                let img = ImageName image
+                                    ctr = ContainerName container
+                                in  demo isInteractive img ctr
     [url, "shell"] -> withClient url shell
     [url, container] -> withClient url (\client -> tailContainer client (ContainerName container) True)
     _ -> putStrLn "usage: podman-demo url image-name container-name"
