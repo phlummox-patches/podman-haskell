@@ -1,0 +1,84 @@
+
+
+name: haddock
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    # this env includes a "secret" called
+    # CACHE_DATE, that you can change in order to clear the
+    # cache if necessary.
+    # see https://github.community/t/how-to-clear-cache-in-github-actions/129038/4
+    environment: ci-env
+
+    runs-on: ubuntu-18.04
+    env:
+      STACK_VERSION: "2.1.3"
+      STACK_RESOLVER: "lts-13.30"
+
+    name: build haddock API documentation
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Haskell
+        uses: haskell/actions/setup@v1.2.3
+        with:
+          ghc-version: '8.6'
+          cabal-version: '2.4'
+
+      - name: Cache
+        uses: actions/cache@v2
+        env:
+          cache-name: haskell-cache
+        with:
+          path: |
+            ~/.cabal
+            ~/.local
+            ~/.ghc
+            ~/.stack
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-haddock-${{ secrets.CACHE_DATE }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-haddock-${{ secrets.CACHE_DATE }}
+            ${{ runner.os }}-build-${{ env.cache-name }}-haddock
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: dependencies
+        run: |
+          set -ex
+          sudo apt-get update && sudo apt-get install -y xz-utils curl
+
+          mkdir -p "$HOME/.local/bin"
+          export PATH=$HOME/.local/bin:$PATH
+          export LINUX64_STACK="https://github.com/commercialhaskell/stack/releases/download/v${STACK_VERSION}/stack-${STACK_VERSION}-linux-x86_64.tar.gz"
+          curl -L "${LINUX64_STACK}" | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
+
+          set +ex
+
+      - name: build
+        run: |
+          set -ex
+
+          # build project with stack
+          stack --version
+          stack --resolver="$STACK_RESOLVER" setup
+          stack --resolver="$STACK_RESOLVER" ghc -- --version
+
+          # get appropriate stack.yaml
+          if [ -f "stack-${STACK_RESOLVER}.yaml" ] ; then
+            cp "stack-${STACK_RESOLVER}.yaml" stack.yaml
+          else
+            printf >&2 "not a good idea. custom stack.yaml needed for this repo"
+            exit 1
+          fi
+          stack build  --test --no-run-tests
+          stack haddock
+
+          set +ex
+
+
+
